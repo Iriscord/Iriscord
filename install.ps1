@@ -79,7 +79,7 @@ if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
 
     if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
         Write-Host ""
-        Write-Host "  No package.json here — downloading full Iriscord source..." -ForegroundColor DarkGray
+        Write-Host "  No package.json here - downloading full Iriscord source..." -ForegroundColor DarkGray
         if (Test-Path $sourceDir) { Remove-Item -Path $sourceDir -Recurse -Force }
         if (Get-Command git -ErrorAction SilentlyContinue) {
             $parent = Split-Path $sourceDir -Parent
@@ -107,7 +107,7 @@ if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
             Remove-Item -Path $tempExtract -Recurse -Force -ErrorAction SilentlyContinue
         }
         if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
-            throw "Failed to download source — package.json still missing in $sourceDir"
+            throw "Failed to download source - package.json still missing in $sourceDir"
         }
     }
 
@@ -509,7 +509,7 @@ function Invoke-InstallFlow {
             Invoke-IriscordBuild
             Write-Host ""
         } elseif ($Production) {
-            Write-Log info "No local source — will fetch build from GitHub release"
+            Write-Log info "No local source - will fetch build from GitHub release"
         } else {
             throw "dist/ is missing and this folder is not a full Iriscord checkout (no package.json)."
         }
@@ -548,7 +548,7 @@ function Invoke-RepairFlow {
         } elseif (-not $Production) {
             throw "dist/ is missing and this folder is not a full Iriscord checkout (no package.json)."
         } else {
-            Write-Log info "No local source — will fetch build from GitHub release"
+            Write-Log info "No local source - will fetch build from GitHub release"
         }
     }
     Invoke-InstallerCli -ExtraArgs @("--repair", "-branch", $script:MenuBranch)

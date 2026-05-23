@@ -23,8 +23,16 @@ $SourceDir = Join-Path $env:TEMP "Iriscord-Setup"
 $RepoUrl = "https://github.com/$Repo.git"
 $ZipUrl = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
 
+function Test-InstallScriptValid([string]$Path) {
+    if (-not (Test-Path $Path)) { return $false }
+    $parseErrors = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$null, [ref]$parseErrors)
+    return ($null -eq $parseErrors -or $parseErrors.Count -eq 0)
+}
+
 function Test-SourceReady([string]$Dir) {
-    Test-Path (Join-Path $Dir "package.json")
+    if (-not (Test-Path (Join-Path $Dir "package.json"))) { return $false }
+    Test-InstallScriptValid (Join-Path $Dir "install.ps1")
 }
 
 # Run git without PowerShell treating stderr as a fatal error (common with "irm | iex").
@@ -85,8 +93,12 @@ function Install-ZipSource([string]$Dir) {
 
 function Ensure-IriscordSource([string]$Dir) {
     if (Test-SourceReady $Dir) {
-        Write-Host "  Using existing source (package.json found)." -ForegroundColor DarkGray
+        Write-Host "  Using existing source (package.json + install.ps1 OK)." -ForegroundColor DarkGray
         return
+    }
+
+    if (Test-Path (Join-Path $Dir "package.json")) {
+        Write-Host "  Repairing broken install.ps1 (re-downloading source)..." -ForegroundColor DarkGray
     }
 
     if (Get-Command git -ErrorAction SilentlyContinue) {
