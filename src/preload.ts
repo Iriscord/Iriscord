@@ -55,15 +55,27 @@ if (location.protocol !== "data:") {
                     };
                 },
             });
+            // @ts-ignore
+            window.PublicKeyCredential = undefined;
         } catch (_) { }
 
-        // Fix B: Async override in the MAIN world so Discord's renderer JS also
-        // sees a stubbed credentials object (webFrame.executeJavaScript runs in
-        // the main world before page scripts execute).
-        webFrame.executeJavaScript(`
+        // Fix B: Synchronous script tag injection in the MAIN world.
+        // Since preload runs in an isolated context, modifying window.navigator directly in preload
+        // only affects the isolated context. Creating a <script> element and appending it to the DOM
+        // runs it synchronously in the main world's context before page load completes.
+        const mainWorldCode = `
             (function() {
                 const _reject = () => Promise.reject(Object.assign(new DOMException('Operation not allowed', 'NotAllowedError'), { code: 0 }));
                 try {
+                    // Disable WebAuthn detection entirely
+                    Object.defineProperty(window, 'PublicKeyCredential', {
+                        configurable: true,
+                        enumerable: true,
+                        writable: true,
+                        value: undefined
+                    });
+                    
+                    // Override credentials API
                     Object.defineProperty(window.navigator, 'credentials', {
                         configurable: true,
                         enumerable: true,
@@ -78,7 +90,16 @@ if (location.protocol !== "data:") {
                     });
                 } catch(e) {}
             })();
-        `);
+        `;
+        try {
+            const script = document.createElement("script");
+            script.textContent = mainWorldCode;
+            (document.head || document.documentElement).appendChild(script);
+            script.remove();
+        } catch (e) {
+            // Fallback to async if DOM is not ready
+            webFrame.executeJavaScript(mainWorldCode);
+        }
         // ─────────────────────────────────────────────────────────────────────────
 
         webFrame.executeJavaScript(sendSync<string>(IpcEvents.PRELOAD_GET_RENDERER_JS));
