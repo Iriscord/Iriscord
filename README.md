@@ -7,9 +7,8 @@ Iriscord is a full rebrand and extension of the [Vencord](https://github.com/Ven
 ## Features
 
 - Easy to install (same injection model as Vencord)
-- 100+ built-in plugins from the Vencord tree, plus Iriscord-exclusive plugins under `src/plugins/`
 - Vencord plugin compatibility via `window.Vencord` and `VencordNative` aliases
-- Custom CSS and themes with a purple/black **Iris** visual language
+- Custom CSS and themes 
 - Privacy-friendly defaults (blocks Discord analytics & crash reporting)
 - Cross-platform: Windows, Linux, macOS, and browser builds
 - Optional transparency, acrylic/Mica (Windows), and vibrancy (macOS)
@@ -21,7 +20,7 @@ Iriscord is a full rebrand and extension of the [Vencord](https://github.com/Ven
 Open PowerShell and run:
 
 ```powershell
-irm https://github.com/iriscord/iriscord/raw/main/scripts/bootstrap.ps1 | iex
+irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
 ```
 
 This downloads the Iriscord installer and opens the interactive menu. **Node.js** is required ([nodejs.org](https://nodejs.org/)).
