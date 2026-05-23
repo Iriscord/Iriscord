@@ -69,6 +69,34 @@ $Brand = @{
 }
 
 $RepoRoot = $PSScriptRoot
+
+# Old bootstrap only copied install scripts (no package.json). Fetch full source into Iriscord-Setup.
+if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
+    $sourceDir = Join-Path $env:TEMP "Iriscord-Setup"
+    $ensureScript = Join-Path $RepoRoot "scripts\ensureSource.ps1"
+    if (-not (Test-Path $ensureScript)) {
+        $repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
+        $branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
+        $raw = "https://github.com/$repo/raw/$branch"
+        $scriptParent = Split-Path $ensureScript -Parent
+        if (-not (Test-Path $scriptParent)) { New-Item -ItemType Directory -Path $scriptParent -Force | Out-Null }
+        Write-Host ""
+        Write-Host "  Downloading full Iriscord source (package.json + project)..." -ForegroundColor DarkGray
+        Invoke-WebRequest -Uri "$raw/scripts/ensureSource.ps1" -OutFile $ensureScript -UseBasicParsing
+    }
+    . $ensureScript
+    Ensure-IriscordSource -Dir $sourceDir | Out-Null
+    $current = (Resolve-Path $RepoRoot -ErrorAction SilentlyContinue).Path
+    $target = (Resolve-Path $sourceDir).Path
+    if ($current -ne $target) {
+        Write-Host "  Using source at $sourceDir" -ForegroundColor DarkGray
+        Write-Host ""
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $sourceDir "install.ps1") -Production @args
+        exit $LASTEXITCODE
+    }
+    $RepoRoot = $sourceDir
+}
+
 $Version = "1.0.0"
 $pkgJson = Join-Path $RepoRoot "package.json"
 if (Test-Path $pkgJson) {
