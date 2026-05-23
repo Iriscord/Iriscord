@@ -86,7 +86,7 @@ async function generateDebugInfoMessage() {
 
     const info = {
         Iriscord:
-            `v${VERSION} • [${gitHash}](<https://github.com/Vendicated/Iriscord/commit/${gitHash}>)` +
+            `v${VERSION} • [${gitHash}](<https://github.com/Iriscord/Iriscord/commit/${gitHash}>)` +
             `${SettingsPlugin.additionalInfo} - ${Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(BUILD_TIMESTAMP)}`,
         Client: `${RELEASE_CHANNEL} ~ ${client}`,
         Platform: navigator.platform

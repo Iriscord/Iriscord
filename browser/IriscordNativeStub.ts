@@ -71,7 +71,7 @@ window.IriscordNative = {
     },
 
     updater: {
-        getRepo: async () => ({ ok: true, value: "https://github.com/Vendicated/Iriscord" }),
+        getRepo: async () => ({ ok: true, value: "https://github.com/Iriscord/Iriscord" }),
         getUpdates: async () => ({ ok: true, value: [] }),
         update: async () => ({ ok: true, value: false }),
         rebuild: async () => ({ ok: true, value: true }),

@@ -21,7 +21,7 @@ export const LEGACY_DATA_DIR_ALT_NAME = "IriscordData";
 export const DEFAULT_CLOUD_API_URL = "https://api.iriscord.dev/";
 
 /** Project URLs — update when publishing your fork */
-export const PROJECT_HOMEPAGE = "https://github.com/iriscord/iriscord";
+export const PROJECT_HOMEPAGE = "https://github.com/Iriscord/Iriscord";
 export const PROJECT_DOWNLOAD = "https://iriscord.dev/download";
 export const PROJECT_PLUGINS = "https://iriscord.dev/plugins";
 export const PROJECT_DISCORD_INVITE = "https://discord.gg/iriscord";

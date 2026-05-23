@@ -9,7 +9,7 @@
     "type": "module",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Vendicated/Iriscord.git",
+        "url": "git+https://github.com/Iriscord/Iriscord.git",
         "directory": "packages/discord-types"
     },
     "dependencies": {

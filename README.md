@@ -2,7 +2,7 @@
 
 **A modern Discord client mod — powered by Iris**
 
-Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Vendicated/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
+Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Iriscord/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
 
 ## Features
 

@@ -3,13 +3,13 @@
     "private": "true",
     "version": "1.0.0",
     "description": "A modern Discord client mod — powered by Iris",
-    "homepage": "https://github.com/iriscord/iriscord#readme",
+    "homepage": "https://github.com/Iriscord/Iriscord#readme",
     "bugs": {
-        "url": "https://github.com/iriscord/iriscord/issues"
+        "url": "https://github.com/Iriscord/Iriscord/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/iriscord/iriscord.git"
+        "url": "git+https://github.com/Iriscord/Iriscord.git"
     },
     "license": "GPL-3.0-or-later",
     "author": "Iriscord Contributors",

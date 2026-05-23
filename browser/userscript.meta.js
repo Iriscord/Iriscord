@@ -3,8 +3,8 @@
 // @description     A modern Discord client mod — powered by Iris (web)
 // @version         %version%
 // @author          Iriscord Contributors
-// @namespace       https://github.com/iriscord/iriscord
-// @supportURL      https://github.com/iriscord/iriscord
+// @namespace       https://github.com/Iriscord/Iriscord
+// @supportURL      https://github.com/Iriscord/Iriscord
 // @icon            https://raw.githubusercontent.com/iriscord/iriscord/main/assets/iriscord-logo.svg
 // @license         GPL-3.0
 // @match           *://*.discord.com/*
