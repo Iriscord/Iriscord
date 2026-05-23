@@ -45,13 +45,13 @@ function Test-SourceReady([string]$Dir) {
 }
 
 function Get-PreferredSourceDir {
-    @(
+    foreach ($d in @(
         $env:IRISCORD_REPO_ROOT,
         (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
         (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
         $SourceDir
-    ) | Where-Object { $_ } | ForEach-Object {
-        if (Test-SourceReady $_) { return $_ }
+    )) {
+        if ($d -and (Test-SourceReady $d)) { return $d }
     }
     return $SourceDir
 }

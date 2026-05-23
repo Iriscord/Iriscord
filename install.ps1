@@ -84,13 +84,13 @@ function Test-IriscordReactInject([string]$Root) {
 }
 
 function Get-PreferredIriscordSource {
-    @(
+    foreach ($d in @(
         $env:IRISCORD_REPO_ROOT,
         (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
         (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
         (Join-Path $env:TEMP "Iriscord-Setup")
-    ) | Where-Object { $_ } | ForEach-Object {
-        if ((Test-Path (Join-Path $_ "package.json")) -and (Test-IriscordReactInject $_)) { return $_ }
+    )) {
+        if ($d -and (Test-Path (Join-Path $d "package.json")) -and (Test-IriscordReactInject $d)) { return $d }
     }
     return $null
 }
