@@ -91,7 +91,7 @@ function PatchQuickTest() {
                 find: parsedFind,
                 replacement: {
                     match: canonicalizeMatch(match),
-                    replace: canonicalizeReplace(replacement, `Vencord.Plugins.plugins[${JSON.stringify(LAB_PLUGIN_ID)}]`) as string
+                    replace: canonicalizeReplace(replacement, `Iriscord.Plugins.plugins[${JSON.stringify(LAB_PLUGIN_ID)}]`) as string
                 }
             });
 
@@ -191,7 +191,7 @@ function PluginWorkshop() {
         }
 
         try {
-            await VencordNative.plugins.save(safeName, source);
+            await IriscordNative.plugins.save(safeName, source);
             toast(`Saved to userplugins/${safeName}. Run pnpm build, then relaunch Discord.`);
             setStatus(`Saved to library as "${safeName}". Rebuild Iriscord to keep it permanently.`);
         } catch (e) {

@@ -2,12 +2,12 @@
 
 **A modern Discord client mod — powered by Iris**
 
-Iriscord is a full rebrand and extension of the [Vencord](https://github.com/Vendicated/Vencord) codebase. It keeps compatibility with the Vencord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
+Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Vendicated/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
 
 ## Features
 
-- Easy to install (same injection model as Vencord)
-- Vencord plugin compatibility via `window.Vencord` and `VencordNative` aliases
+- Easy to install (same injection model as Iriscord)
+- Iriscord plugin compatibility via `window.Iriscord` and `IriscordNative` aliases
 - Custom CSS and themes 
 - Privacy-friendly defaults (blocks Discord analytics & crash reporting)
 - Cross-platform: Windows, Linux, macOS, and browser builds
@@ -40,13 +40,13 @@ pnpm build
 pnpm inject                      # same as: node scripts/installDiscord.mjs --install
 ```
 
-Iriscord uses its **own installer** (`scripts/installDiscord.mjs`) — it does **not** download Vencord’s installer.
+Iriscord uses its **own installer** (`scripts/installDiscord.mjs`) — it does **not** download Iriscord’s installer.
 
 ### GitHub releases
 
 For the one-liner to install without building locally, publish a release with `dist` assets (`patcher.js`, `renderer.js`, etc.). Until then, clone the repo, run `pnpm build`, then install.
 
-See [MIGRATION.md](./MIGRATION.md) if you are moving from Vencord.
+See [MIGRATION.md](./MIGRATION.md) if you are moving from Iriscord.
 
 ## Development
 
@@ -57,7 +57,7 @@ pnpm buildWeb       # browser extension / userscript
 pnpm test           # build + lint + typecheck
 ```
 
-Settings and data are stored in `%AppData%/Iriscord` (or `~/Iriscord` on Linux/macOS). Existing **Vencord** folders are detected automatically on first launch.
+Settings and data are stored in `%AppData%/Iriscord` (or `~/Iriscord` on Linux/macOS). Existing **Iriscord** folders are detected automatically on first launch.
 
 ## Project layout
 
@@ -65,7 +65,7 @@ Settings and data are stored in `%AppData%/Iriscord` (or `~/Iriscord` on Linux/m
 |------|---------|
 | `src/` | Renderer, main process, plugins |
 | `src/shared/branding.ts` | Product name, URLs, brand colors |
-| `src/plugins/` | Built-in plugins (Vencord + Iriscord) |
+| `src/plugins/` | Built-in plugins (Iriscord + Iriscord) |
 | `scripts/build/` | esbuild pipelines |
 | `browser/` | Web extension / userscript entry |
 
@@ -73,8 +73,8 @@ Settings and data are stored in `%AppData%/Iriscord` (or `~/Iriscord` on Linux/m
 
 - **Product name:** Iriscord  
 - **Short name:** Iris  
-- **Global API:** `window.Iriscord` (legacy: `window.Vencord`)  
-- **Native bridge:** `IriscordNative` (legacy: `VencordNative`)
+- **Global API:** `window.Iriscord` (legacy: `window.Iriscord`)  
+- **Native bridge:** `IriscordNative` (legacy: `IriscordNative`)
 
 ## Disclaimer
 
@@ -84,4 +84,4 @@ Client modifications may violate Discord’s Terms of Service. Use at your own r
 
 ## License
 
-GPL-3.0-or-later — see upstream Vencord for full copyright notices.
+GPL-3.0-or-later — see upstream Iriscord for full copyright notices.

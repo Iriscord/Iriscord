@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,14 +46,14 @@ declare global {
     export var BUILD_TIMESTAMP: number;
 
     export var IriscordNative: typeof import("./IriscordNative").default;
-    /** @deprecated Use IriscordNative — kept for Vencord plugin compatibility */
-    export var VencordNative: typeof import("./IriscordNative").default;
+    /** @deprecated Use IriscordNative — kept for Iriscord plugin compatibility */
+    export var IriscordNative: typeof import("./IriscordNative").default;
     export var Iriscord: typeof import("./Iriscord");
-    /** @deprecated Use Iriscord — kept for Vencord plugin compatibility */
-    export var Vencord: typeof import("./Iriscord");
+    /** @deprecated Use Iriscord — kept for Iriscord plugin compatibility */
+    export var Iriscord: typeof import("./Iriscord");
     export var IriscordStyles: Map<string, Style>;
     /** @deprecated Use IriscordStyles */
-    export var VencordStyles: Map<string, Style>;
+    export var IriscordStyles: Map<string, Style>;
     export var appSettings: {
         set(setting: string, v: any): void;
     };

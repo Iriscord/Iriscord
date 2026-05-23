@@ -265,8 +265,8 @@ function Set-IriscordEnv {
         $data = Get-IriscordDataDir
         $env:IRISCORD_USER_DATA_DIR = $data
         Remove-Item Env:IRISCORD_DEV_INSTALL -ErrorAction SilentlyContinue
-        Remove-Item Env:VENCORD_DEV_INSTALL -ErrorAction SilentlyContinue
-        Remove-Item Env:VENCORD_USER_DATA_DIR -ErrorAction SilentlyContinue
+        Remove-Item Env:Iriscord_DEV_INSTALL -ErrorAction SilentlyContinue
+        Remove-Item Env:Iriscord_USER_DATA_DIR -ErrorAction SilentlyContinue
         if (Test-Path (Join-Path $RepoRoot "dist\patcher.js")) {
             $env:IRISCORD_USE_LOCAL_DIST = "1"
             $env:IRISCORD_LOCAL_DIST = Join-Path $RepoRoot "dist"
@@ -274,8 +274,8 @@ function Set-IriscordEnv {
     } else {
         $env:IRISCORD_USER_DATA_DIR = $RepoRoot
         $env:IRISCORD_DEV_INSTALL = "1"
-        $env:VENCORD_USER_DATA_DIR = $RepoRoot
-        $env:VENCORD_DEV_INSTALL = "1"
+        $env:Iriscord_USER_DATA_DIR = $RepoRoot
+        $env:Iriscord_DEV_INSTALL = "1"
         Remove-Item Env:IRISCORD_USE_LOCAL_DIST -ErrorAction SilentlyContinue
         Remove-Item Env:IRISCORD_LOCAL_DIST -ErrorAction SilentlyContinue
     }
@@ -285,8 +285,8 @@ function Get-IriscordDataDir {
     $base = $env:APPDATA
     $candidates = @(
         (Join-Path $base "Iriscord"),
-        (Join-Path $base "Vencord"),
-        (Join-Path $base "VencordData")
+        (Join-Path $base "Iriscord"),
+        (Join-Path $base "IriscordData")
     )
     foreach ($d in $candidates) {
         if (Test-Path $d) { return $d }

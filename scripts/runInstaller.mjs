@@ -1,5 +1,5 @@
 /*
- * Iriscord installer entry (native — no Vencord CLI download)
+ * Iriscord installer entry (native — no Iriscord CLI download)
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 

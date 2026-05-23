@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,10 +19,10 @@
 declare global {
     export var IriscordNative: typeof import("./IriscordNative").default;
     /** @deprecated Use IriscordNative */
-    export var VencordNative: typeof import("./IriscordNative").default;
+    export var IriscordNative: typeof import("./IriscordNative").default;
     export var Iriscord: typeof import("./Iriscord");
     /** @deprecated Use Iriscord */
-    export var Vencord: typeof import("./Iriscord");
+    export var Iriscord: typeof import("./Iriscord");
 }
 
 export { };

@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ import { proxyLazy } from "@utils/lazy";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { OptionType, Plugin, PluginTag } from "@utils/types";
-import { RenderModalProps, User } from "@vencord/discord-types";
+import { RenderModalProps, User } from "@Iriscord/discord-types";
 import { findCssClassesLazy } from "@webpack";
 import { Clickable, FluxDispatcher, Forms, Modal,openModal, React, Text, Tooltip, useEffect, useMemo, UserStore, UserSummaryItem, UserUtils, useState } from "@webpack/common";
 import { Constructor } from "type-fest";

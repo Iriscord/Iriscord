@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,8 @@ import { contextBridge, webFrame } from "electron/renderer";
 import IriscordNative, { invoke, sendSync } from "./IriscordNative";
 
 contextBridge.exposeInMainWorld("IriscordNative", IriscordNative);
-// Vencord plugin ecosystem compatibility
-contextBridge.exposeInMainWorld("VencordNative", IriscordNative);
+// Iriscord plugin ecosystem compatibility
+contextBridge.exposeInMainWorld("IriscordNative", IriscordNative);
 
 // Discord
 if (location.protocol !== "data:") {

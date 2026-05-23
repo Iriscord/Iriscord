@@ -123,12 +123,12 @@ function IriscordSettings() {
                 <Forms.FormTitle tag="h5">Quick actions</Forms.FormTitle>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     <Button onClick={openNotificationLogModal}>Notification log</Button>
-                    <Button onClick={() => VencordNative.quickCss.openEditor()}>Edit QuickCSS</Button>
+                    <Button onClick={() => IriscordNative.quickCss.openEditor()}>Edit QuickCSS</Button>
                     {!IS_WEB && (
                         <>
                             <Button onClick={relaunch}>Relaunch Discord</Button>
-                            <Button onClick={() => VencordNative.settings.openFolder()}>Open data folder</Button>
-                            <Button onClick={() => VencordNative.plugins.openFolder()}>Open plugins folder</Button>
+                            <Button onClick={() => IriscordNative.settings.openFolder()}>Open data folder</Button>
+                            <Button onClick={() => IriscordNative.plugins.openFolder()}>Open plugins folder</Button>
                         </>
                     )}
                 </div>

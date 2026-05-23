@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,36 +31,36 @@ export interface Style {
     dom: HTMLStyleElement | null;
 }
 
-export const styleMap = (window.IriscordStyles ??= window.VencordStyles ?? new Map());
-window.VencordStyles ??= window.IriscordStyles;
+export const styleMap = (window.IriscordStyles ??= window.IriscordStyles ?? new Map());
+window.IriscordStyles ??= window.IriscordStyles;
 
-export const vencordRootNode = document.createElement("vencord-root");
+export const IriscordRootNode = document.createElement("Iriscord-root");
 /**
- * Houses all Vencord core styles. This includes all imported css files
+ * Houses all Iriscord core styles. This includes all imported css files
  */
-export const coreStyleRootNode = document.createElement("vencord-styles");
+export const coreStyleRootNode = document.createElement("Iriscord-styles");
 /**
  * Houses all plugin specific managed styles
  */
-export const managedStyleRootNode = document.createElement("vencord-managed-styles");
+export const managedStyleRootNode = document.createElement("Iriscord-managed-styles");
 /**
  * Houses the user's themes and quick css
  */
-export const userStyleRootNode = document.createElement("vencord-user-styles");
+export const userStyleRootNode = document.createElement("Iriscord-user-styles");
 
-vencordRootNode.style.display = "none";
-vencordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
+IriscordRootNode.style.display = "none";
+IriscordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
 
 export function initStyles() {
-    const osValuesNode = createAndAppendStyle("vencord-os-theme-values", coreStyleRootNode);
-    createAndAppendStyle("vencord-text", coreStyleRootNode).textContent = generateTextCss();
-    const rendererCssNode = createAndAppendStyle("vencord-css-core", coreStyleRootNode);
+    const osValuesNode = createAndAppendStyle("Iriscord-os-theme-values", coreStyleRootNode);
+    createAndAppendStyle("Iriscord-text", coreStyleRootNode).textContent = generateTextCss();
+    const rendererCssNode = createAndAppendStyle("Iriscord-css-core", coreStyleRootNode);
     const vesktopCssNode = IS_VESKTOP ? createAndAppendStyle("vesktop-css-core", coreStyleRootNode) : null;
-    createAndAppendStyle("vencord-margins", coreStyleRootNode).textContent = generateMarginCss();
+    createAndAppendStyle("Iriscord-margins", coreStyleRootNode).textContent = generateMarginCss();
 
-    VencordNative.native.getRendererCss().then(css => rendererCssNode.textContent = css);
+    IriscordNative.native.getRendererCss().then(css => rendererCssNode.textContent = css);
     if (IS_DEV) {
-        VencordNative.native.onRendererCssUpdate(newCss => {
+        IriscordNative.native.onRendererCssUpdate(newCss => {
             rendererCssNode.textContent = newCss;
         });
     }
@@ -72,7 +72,7 @@ export function initStyles() {
         });
     }
 
-    VencordNative.themes.getSystemValues().then(values => {
+    IriscordNative.themes.getSystemValues().then(values => {
         const variables = Object.entries(values)
             .filter(([, v]) => !!v)
             .map(([k, v]) => `--${k}: ${v};`)
@@ -82,7 +82,7 @@ export function initStyles() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.documentElement.append(vencordRootNode);
+    document.documentElement.append(IriscordRootNode);
 }, { once: true });
 
 export function requireStyle(name: string) {
@@ -109,7 +109,7 @@ export function enableStyle(name: string) {
 
     if (!style.dom) {
         style.dom = document.createElement("style");
-        style.dom.dataset.vencordName = style.name;
+        style.dom.dataset.IriscordName = style.name;
     }
     compileStyle(style);
 

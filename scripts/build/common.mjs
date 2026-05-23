@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,10 +35,10 @@ import { getPluginTarget } from "../utils.mjs";
 import { builtinModules } from "module";
 
 export function getAppDataUserPluginsDir() {
-    if (process.env.IRISCORD_USER_DATA_DIR || process.env.VENCORD_USER_DATA_DIR) {
-        const dataDir = process.env.IRISCORD_USER_DATA_DIR || process.env.VENCORD_USER_DATA_DIR;
+    if (process.env.IRISCORD_USER_DATA_DIR || process.env.Iriscord_USER_DATA_DIR) {
+        const dataDir = process.env.IRISCORD_USER_DATA_DIR || process.env.Iriscord_USER_DATA_DIR;
         const devSrc = join(dataDir, "src", "userplugins");
-        if (process.env.IRISCORD_DEV_INSTALL || process.env.VENCORD_DEV_INSTALL) {
+        if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
             return devSrc;
         }
         return join(dataDir, "userplugins");
@@ -58,11 +58,11 @@ export function getAppDataUserPluginsDir() {
 
     let dataDir = join(base, "Iriscord");
     if (!existsSync(dataDir)) {
-        const legacy = join(base, "Vencord");
+        const legacy = join(base, "Iriscord");
         if (existsSync(legacy)) {
             dataDir = legacy;
         } else {
-            const legacyAlt = join(base, "VencordData");
+            const legacyAlt = join(base, "IriscordData");
             if (existsSync(legacyAlt)) {
                 dataDir = legacyAlt;
             }
@@ -70,7 +70,7 @@ export function getAppDataUserPluginsDir() {
     }
 
     const devSrc = join(dataDir, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.VENCORD_DEV_INSTALL) {
+    if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
         return devSrc;
     }
     return join(dataDir, "userplugins");
@@ -92,7 +92,7 @@ export const IS_STANDALONE = process.argv.includes("--standalone");
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
 
 function resolveGitHash() {
-    const fromEnv = process.env.IRISCORD_HASH || process.env.VENCORD_HASH;
+    const fromEnv = process.env.IRISCORD_HASH || process.env.Iriscord_HASH;
     if (fromEnv) return fromEnv.trim();
     try {
         return execSync("git rev-parse --short HEAD", {
@@ -351,7 +351,7 @@ export const gitRemotePlugin = {
             namespace: "git-remote", path: args.path
         }));
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
-            let remote = process.env.IRISCORD_REMOTE || process.env.VENCORD_REMOTE;
+            let remote = process.env.IRISCORD_REMOTE || process.env.Iriscord_REMOTE;
             if (!remote) {
                 try {
                     const res = await promisify(exec)("git remote get-url origin", {

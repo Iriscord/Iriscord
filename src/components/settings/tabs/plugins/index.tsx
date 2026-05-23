@@ -84,7 +84,7 @@ function PluginSettings() {
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {!IS_WEB && (
-                    <Button onClick={() => VencordNative.plugins.openFolder()}>Open plugins folder</Button>
+                    <Button onClick={() => IriscordNative.plugins.openFolder()}>Open plugins folder</Button>
                 )}
                 <Button onClick={relaunch}>Relaunch Discord</Button>
             </div>

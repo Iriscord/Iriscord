@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -73,9 +73,9 @@ function CloudSetupSection() {
             <SectionHeading text="Cloud Integrations" />
 
             <Paragraph size="md" className={Margins.bottom20}>
-                Vencord comes with a cloud integration that adds goodies like settings sync across devices.
+                Iriscord comes with a cloud integration that adds goodies like settings sync across devices.
                 It <Link href="https://iriscord.dev/cloud/privacy">respects your privacy</Link>, and
-                the <Link href="https://github.com/Vencord/Backend">source code</Link> is AGPL 3.0 licensed so you
+                the <Link href="https://github.com/Iriscord/Backend">source code</Link> is AGPL 3.0 licensed so you
                 can host it yourself.
             </Paragraph>
             <FormSwitch
@@ -135,7 +135,7 @@ function SettingsSyncSection() {
                 <FormSwitch
                     key="cloud-sync"
                     title="Enable Settings Sync"
-                    description="Save your Vencord settings to the cloud so you can easily keep them the same on all your devices"
+                    description="Save your Iriscord settings to the cloud so you can easily keep them the same on all your devices"
                     value={cloud.settingsSync}
                     onChange={v => { cloud.settingsSync = v; }}
                     disabled={!cloud.authenticated}

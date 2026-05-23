@@ -20,4 +20,4 @@
 
 
 // Compiled Iriscord userscript. For source, see the Iriscord repository.
-// Exposes Iriscord on unsafeWindow; Vencord is an alias for plugin compatibility.
+// Exposes Iriscord on unsafeWindow; Iriscord is an alias for plugin compatibility.

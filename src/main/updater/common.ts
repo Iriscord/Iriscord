@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const VENCORD_FILES = [
+export const Iriscord_FILES = [
     IS_DISCORD_DESKTOP ? "patcher.js" : "iriscordDesktopMain.js",
     IS_DISCORD_DESKTOP ? "preload.js" : "iriscordDesktopPreload.js",
     IS_DISCORD_DESKTOP ? "renderer.js" : "iriscordDesktopRenderer.js",

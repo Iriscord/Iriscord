@@ -117,8 +117,8 @@ Ensure-IriscordSource $SourceDir
 
 $env:IRISCORD_USER_DATA_DIR = Join-Path $env:APPDATA "Iriscord"
 Remove-Item Env:IRISCORD_DEV_INSTALL -ErrorAction SilentlyContinue
-Remove-Item Env:VENCORD_DEV_INSTALL -ErrorAction SilentlyContinue
-Remove-Item Env:VENCORD_USER_DATA_DIR -ErrorAction SilentlyContinue
+Remove-Item Env:Iriscord_DEV_INSTALL -ErrorAction SilentlyContinue
+Remove-Item Env:Iriscord_USER_DATA_DIR -ErrorAction SilentlyContinue
 
 if (-not $env:IRISCORD_LOCAL_DIST) {
     $guess = Join-Path (Get-Location) "dist"

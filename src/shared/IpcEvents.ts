@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,44 +17,44 @@
 */
 
 export const enum IpcEvents {
-    INIT_FILE_WATCHERS = "VencordInitFileWatchers",
+    INIT_FILE_WATCHERS = "IriscordInitFileWatchers",
 
-    OPEN_QUICKCSS = "VencordOpenQuickCss",
-    GET_QUICK_CSS = "VencordGetQuickCss",
-    SET_QUICK_CSS = "VencordSetQuickCss",
-    QUICK_CSS_UPDATE = "VencordQuickCssUpdate",
+    OPEN_QUICKCSS = "IriscordOpenQuickCss",
+    GET_QUICK_CSS = "IriscordGetQuickCss",
+    SET_QUICK_CSS = "IriscordSetQuickCss",
+    QUICK_CSS_UPDATE = "IriscordQuickCssUpdate",
 
-    GET_SETTINGS = "VencordGetSettings",
-    SET_SETTINGS = "VencordSetSettings",
+    GET_SETTINGS = "IriscordGetSettings",
+    SET_SETTINGS = "IriscordSetSettings",
 
-    GET_THEMES_LIST = "VencordGetThemesList",
-    GET_THEME_DATA = "VencordGetThemeData",
-    GET_THEME_SYSTEM_VALUES = "VencordGetThemeSystemValues",
-    THEME_UPDATE = "VencordThemeUpdate",
+    GET_THEMES_LIST = "IriscordGetThemesList",
+    GET_THEME_DATA = "IriscordGetThemeData",
+    GET_THEME_SYSTEM_VALUES = "IriscordGetThemeSystemValues",
+    THEME_UPDATE = "IriscordThemeUpdate",
 
-    OPEN_EXTERNAL = "VencordOpenExternal",
-    OPEN_THEMES_FOLDER = "VencordOpenThemesFolder",
-    OPEN_SETTINGS_FOLDER = "VencordOpenSettingsFolder",
+    OPEN_EXTERNAL = "IriscordOpenExternal",
+    OPEN_THEMES_FOLDER = "IriscordOpenThemesFolder",
+    OPEN_SETTINGS_FOLDER = "IriscordOpenSettingsFolder",
     OPEN_PLUGINS_FOLDER = "IriscordOpenPluginsFolder",
     SAVE_USER_PLUGIN = "IriscordSaveUserPlugin",
 
-    GET_UPDATES = "VencordGetUpdates",
-    GET_REPO = "VencordGetRepo",
-    UPDATE = "VencordUpdate",
-    BUILD = "VencordBuild",
+    GET_UPDATES = "IriscordGetUpdates",
+    GET_REPO = "IriscordGetRepo",
+    UPDATE = "IriscordUpdate",
+    BUILD = "IriscordBuild",
 
-    OPEN_MONACO_EDITOR = "VencordOpenMonacoEditor",
-    GET_MONACO_THEME = "VencordGetMonacoTheme",
+    OPEN_MONACO_EDITOR = "IriscordOpenMonacoEditor",
+    GET_MONACO_THEME = "IriscordGetMonacoTheme",
 
-    GET_PLUGIN_IPC_METHOD_MAP = "VencordGetPluginIpcMethodMap",
+    GET_PLUGIN_IPC_METHOD_MAP = "IriscordGetPluginIpcMethodMap",
 
-    CSP_IS_DOMAIN_ALLOWED = "VencordCspIsDomainAllowed",
-    CSP_REMOVE_OVERRIDE = "VencordCspRemoveOverride",
-    CSP_REQUEST_ADD_OVERRIDE = "VencordCspRequestAddOverride",
+    CSP_IS_DOMAIN_ALLOWED = "IriscordCspIsDomainAllowed",
+    CSP_REMOVE_OVERRIDE = "IriscordCspRemoveOverride",
+    CSP_REQUEST_ADD_OVERRIDE = "IriscordCspRequestAddOverride",
 
-    GET_RENDERER_CSS = "VencordGetRendererCss",
-    RENDERER_CSS_UPDATE = "VencordRendererCssUpdate",
-    PRELOAD_GET_RENDERER_JS = "VencordPreloadGetRendererJs",
+    GET_RENDERER_CSS = "IriscordGetRendererCss",
+    RENDERER_CSS_UPDATE = "IriscordRendererCssUpdate",
+    PRELOAD_GET_RENDERER_JS = "IriscordPreloadGetRendererJs",
 
-    SUPPORTS_WINDOWS_MATERIAL = "VencordSupportsWindowsMaterial",
+    SUPPORTS_WINDOWS_MATERIAL = "IriscordSupportsWindowsMaterial",
 }

@@ -1,5 +1,5 @@
 /*
- * Iriscord native Discord installer (no external Vencord CLI)
+ * Iriscord native Discord installer (no external Iriscord CLI)
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -49,13 +49,13 @@ function log(level, msg) {
 
 function resolveDataDir() {
     if (process.env.IRISCORD_USER_DATA_DIR) return resolve(process.env.IRISCORD_USER_DATA_DIR);
-    if (process.env.VENCORD_USER_DATA_DIR) return resolve(process.env.VENCORD_USER_DATA_DIR);
+    if (process.env.Iriscord_USER_DATA_DIR) return resolve(process.env.Iriscord_USER_DATA_DIR);
 
     const base = process.env.DISCORD_USER_DATA_DIR
         ? join(process.env.DISCORD_USER_DATA_DIR, "..")
         : join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"));
 
-    for (const name of [DATA_DIR_NAME, "Vencord", "VencordData"]) {
+    for (const name of [DATA_DIR_NAME, "Iriscord", "IriscordData"]) {
         const p = join(base, name);
         if (existsSync(p)) return p;
     }
@@ -63,7 +63,7 @@ function resolveDataDir() {
 }
 
 const isDevInstall = process.env.IRISCORD_DEV_INSTALL === "1"
-    || process.env.VENCORD_DEV_INSTALL === "1";
+    || process.env.Iriscord_DEV_INSTALL === "1";
 
 const dataDir = resolveDataDir();
 const filesDir = join(dataDir, "dist");
@@ -113,7 +113,7 @@ function parseDiscordRoot(root, branch) {
     };
 }
 
-/** @see Vencord/Installer app_asar.go WriteAppAsar */
+/** @see Iriscord/Installer app_asar.go WriteAppAsar */
 function writeAppAsar(outFile, patcher) {
     const packageJson = '{\n\t"name": "discord",\n\t"main": "index.js"\n}';
     const indexJs = `require(${JSON.stringify(patcher)})`;

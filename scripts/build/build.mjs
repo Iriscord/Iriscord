@@ -1,6 +1,6 @@
 #!/usr/bin/node
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -57,8 +57,8 @@ const nodeCommonOpts = {
 };
 
 const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=iriscord://${s}.js.map`;
-/** Expose legacy Vencord globals for third-party plugins */
-const pluginCompatFooter = "typeof globalThis!=='undefined'&&(globalThis.Vencord=globalThis.Iriscord,globalThis.VencordStyles=globalThis.IriscordStyles??globalThis.VencordStyles);";
+/** Expose legacy Iriscord globals for third-party plugins */
+const pluginCompatFooter = "typeof globalThis!=='undefined'&&(globalThis.Iriscord=globalThis.Iriscord,globalThis.IriscordStyles=globalThis.IriscordStyles??globalThis.IriscordStyles);";
 const sourcemap = watch ? "inline" : "external";
 
 /**

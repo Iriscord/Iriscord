@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,8 +22,8 @@ import { LazyComponent } from "@utils/lazyReact";
 import { Logger } from "@utils/Logger";
 import { canonicalizeMatch } from "@utils/patches";
 import { escapeRegExp } from "@utils/text";
-import type { FluxStore } from "@vencord/discord-types";
-import type { ModuleExports, ModuleFactory, WebpackRequire } from "@vencord/discord-types/webpack";
+import type { FluxStore } from "@Iriscord/discord-types";
+import type { ModuleExports, ModuleFactory, WebpackRequire } from "@Iriscord/discord-types/webpack";
 
 import type { AnyModuleFactory, AnyWebpackRequire } from "./types";
 
@@ -71,7 +71,7 @@ export const filters = {
             return stringMatches(Function.prototype.toString.call(m), parsedCode);
         };
 
-        filter.$$vencordProps = [...code];
+        filter.$$IriscordProps = [...code];
         return filter;
     },
     byStoreName: (name: StoreNameFilter): FilterFn => m =>
@@ -93,7 +93,7 @@ export const filters = {
             return false;
         };
 
-        filter.$$vencordProps = [...code];
+        filter.$$IriscordProps = [...code];
         return filter;
     },
 

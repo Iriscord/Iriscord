@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 
 export const IriscordFragment = /* #__PURE__*/ Symbol.for("react.fragment");
 /** @deprecated */
-export const VencordFragment = IriscordFragment;
+export const IriscordFragment = IriscordFragment;
 export let IriscordCreateElement =
     (...args) => (IriscordCreateElement = Iriscord.Webpack.Common.React.createElement)(...args);
 /** @deprecated */
-export let VencordCreateElement = IriscordCreateElement;
+export let IriscordCreateElement = IriscordCreateElement;

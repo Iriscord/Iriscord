@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 */
 
 import ErrorBoundary from "@components/ErrorBoundary";
-import { Channel, User } from "@vencord/discord-types";
+import { Channel, User } from "@Iriscord/discord-types";
 import { JSX } from "react";
 
 interface DecoratorProps {

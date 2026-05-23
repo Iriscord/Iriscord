@@ -1,5 +1,5 @@
 /*
- * Iriscord — a Discord client mod built on Vencord foundations
+ * Iriscord — a Discord client mod built on Iriscord foundations
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -12,10 +12,10 @@ export const PRODUCT_SHORT_NAME = "Iris";
 /** Config / data directory name (sibling to Discord userData) */
 export const DATA_DIR_NAME = "Iriscord";
 
-/** Legacy Vencord data directory name — used for one-time migration */
-export const LEGACY_DATA_DIR_NAME = "Vencord";
+/** Legacy Iriscord data directory name — used for one-time migration */
+export const LEGACY_DATA_DIR_NAME = "Iriscord";
 
-export const LEGACY_DATA_DIR_ALT_NAME = "VencordData";
+export const LEGACY_DATA_DIR_ALT_NAME = "IriscordData";
 
 /** Default cloud API (override via settings) */
 export const DEFAULT_CLOUD_API_URL = "https://api.iriscord.dev/";

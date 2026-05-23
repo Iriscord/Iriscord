@@ -1,5 +1,5 @@
 /*
- * Vencord, a Discord client mod
+ * Iriscord, a Discord client mod
  * Copyright (c) 2025 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -18,4 +18,4 @@ export { default as ThemesTab } from "./themes";
 export { default as UpdaterTab } from "./updater";
 export { default as IriscordTab } from "./iriscord";
 /** @deprecated Use IriscordTab */
-export { default as VencordTab } from "./iriscord";
+export { default as IriscordTab } from "./iriscord";

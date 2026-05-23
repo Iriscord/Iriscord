@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ import { Settings } from "@api/Settings";
 import { openNotificationSettingsModal } from "@components/settings/tabs/iriscord/NotificationSettings";
 import { classNameFactory } from "@utils/css";
 import { useAwaiter } from "@utils/react";
-import { RenderModalProps } from "@vencord/discord-types";
+import { RenderModalProps } from "@Iriscord/discord-types";
 import { ConfirmModal, Forms, ListScrollerThin, Modal,openModal, React, Timestamp, useEffect, useReducer, useState } from "@webpack/common";
 import { nanoid } from "nanoid";
 import type { DispatchWithoutAction } from "react";

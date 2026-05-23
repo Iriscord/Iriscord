@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,8 +28,8 @@ import { installExt } from "./utils/extensions";
 
 if (IS_VESKTOP || !IS_VANILLA) {
     app.whenReady().then(() => {
-        protocol.handle("vencord", ({ url: unsafeUrl }) => {
-            let url = decodeURI(unsafeUrl).slice("vencord://".length).replace(/\?v=\d+$/, "");
+        protocol.handle("Iriscord", ({ url: unsafeUrl }) => {
+            let url = decodeURI(unsafeUrl).slice("Iriscord://".length).replace(/\?v=\d+$/, "");
 
             if (url.endsWith("/")) url = url.slice(0, -1);
 

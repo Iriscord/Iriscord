@@ -1,6 +1,6 @@
 #!/usr/bin/node
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -84,7 +84,7 @@ const buildConfigs = [
     {
         ...commonOptions,
         outfile: "dist/browser.js",
-        footer: { js: "//# sourceURL=file:///IriscordWeb\ntypeof globalThis!=='undefined'&&(globalThis.Vencord=globalThis.Iriscord);" }
+        footer: { js: "//# sourceURL=file:///IriscordWeb\ntypeof globalThis!=='undefined'&&(globalThis.Iriscord=globalThis.Iriscord);" }
     },
     {
         ...commonOptions,
@@ -93,7 +93,7 @@ const buildConfigs = [
             ...commonOptions.define,
             IS_EXTENSION: "true"
         },
-        footer: { js: "//# sourceURL=file:///IriscordWeb\ntypeof globalThis!=='undefined'&&(globalThis.Vencord=globalThis.Iriscord);" }
+        footer: { js: "//# sourceURL=file:///IriscordWeb\ntypeof globalThis!=='undefined'&&(globalThis.Iriscord=globalThis.Iriscord);" }
     },
     {
         ...commonOptions,
@@ -108,7 +108,7 @@ const buildConfigs = [
             js: readFileSync("browser/userscript.meta.js", "utf-8").replace("%version%", `${VERSION}.${new Date().getTime()}`)
         },
         footer: {
-            js: "Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});Object.defineProperty(unsafeWindow,'Vencord',{get:()=>Iriscord});"
+            js: "Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});"
         }
     }
 ];

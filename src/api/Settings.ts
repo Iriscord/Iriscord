@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -129,7 +129,7 @@ const DefaultSettings: Settings = {
     }
 };
 
-const settings = !IS_REPORTER ? VencordNative.settings.get() : {} as Settings;
+const settings = !IS_REPORTER ? IriscordNative.settings.get() : {} as Settings;
 mergeDefaults(settings, DefaultSettings);
 
 export const SettingsStore = new SettingsStoreClass(settings, {
@@ -174,7 +174,7 @@ export const SettingsStore = new SettingsStoreClass(settings, {
 if (!IS_REPORTER) {
     SettingsStore.addGlobalChangeListener((_, path) => {
         SettingsStore.plain.cloud.settingsSyncVersion = Date.now();
-        VencordNative.settings.set(SettingsStore.plain, path);
+        IriscordNative.settings.set(SettingsStore.plain, path);
     });
 }
 

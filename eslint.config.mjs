@@ -1,5 +1,5 @@
 /*
- * Vencord, a Discord client mod
+ * Iriscord, a Discord client mod
  * Copyright (c) 2023 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -60,7 +60,7 @@ export default tseslint.config(
         },
         rules: {
             /*
-             * Since it's only been a month and Vencord has already been stolen
+             * Since it's only been a month and Iriscord has already been stolen
              * by random skids who rebranded it to "AlphaCord" and erased all license
              * information
              */

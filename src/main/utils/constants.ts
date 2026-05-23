@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Iriscord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME } from ".
 
 function resolveDataDir(): string {
     if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
-    if (process.env.VENCORD_USER_DATA_DIR) return process.env.VENCORD_USER_DATA_DIR;
+    if (process.env.Iriscord_USER_DATA_DIR) return process.env.Iriscord_USER_DATA_DIR;
 
     const base = process.env.DISCORD_USER_DATA_DIR
         ? join(process.env.DISCORD_USER_DATA_DIR, "..")
@@ -33,7 +33,7 @@ function resolveDataDir(): string {
     const iriscordDir = join(base, DATA_DIR_NAME);
     if (existsSync(iriscordDir)) return iriscordDir;
 
-    // Migrate from Vencord install: prefer existing settings folder
+    // Migrate from Iriscord install: prefer existing settings folder
     const legacy = join(base, LEGACY_DATA_DIR_NAME);
     if (existsSync(legacy)) return legacy;
 
@@ -50,7 +50,7 @@ export const THEMES_DIR = join(DATA_DIR, "themes");
 /** Where to place plugins for manual install (see userplugins/README.md) */
 export const USER_PLUGINS_DIR = (() => {
     const devSrc = join(DATA_DIR, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.VENCORD_DEV_INSTALL) {
+    if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
         mkdirSync(devSrc, { recursive: true });
         return devSrc;
     }

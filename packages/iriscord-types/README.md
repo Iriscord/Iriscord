@@ -1,11 +1,11 @@
-# Vencord Types
+# Iriscord Types
 
-Typings for Vencord's api, published to npm
+Typings for Iriscord's api, published to npm
 
 ```sh
-npm i @vencord/types
+npm i @Iriscord/types
 
-yarn add @vencord/types
+yarn add @Iriscord/types
 
-pnpm add @vencord/types
+pnpm add @Iriscord/types
 ```

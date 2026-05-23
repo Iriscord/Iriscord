@@ -41,7 +41,7 @@ async function onFileUpload(e: SyntheticEvent<HTMLInputElement>) {
         return new Promise<void>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
-                VencordNative.themes.uploadTheme(file.name, reader.result as string)
+                IriscordNative.themes.uploadTheme(file.name, reader.result as string)
                     .then(resolve)
                     .catch(reject);
             };
@@ -62,7 +62,7 @@ export function LocalThemesTab() {
     }, []);
 
     async function refreshLocalThemes() {
-        setUserThemes(await VencordNative.themes.getThemesList());
+        setUserThemes(await IriscordNative.themes.getThemesList());
     }
 
     return (
@@ -87,10 +87,10 @@ export function LocalThemesTab() {
                         />
                     </>
                 ) : (
-                    <Button onClick={() => VencordNative.themes.openFolder()}>Open themes folder</Button>
+                    <Button onClick={() => IriscordNative.themes.openFolder()}>Open themes folder</Button>
                 )}
                 <Button onClick={refreshLocalThemes}>Refresh list</Button>
-                <Button onClick={() => VencordNative.quickCss.openEditor()}>Edit QuickCSS</Button>
+                <Button onClick={() => IriscordNative.quickCss.openEditor()}>Edit QuickCSS</Button>
             </div>
 
             {userThemes?.length ? (
@@ -102,7 +102,7 @@ export function LocalThemesTab() {
                             onChange={enabled => onLocalThemeChange(theme.fileName, enabled)}
                             onDelete={async () => {
                                 onLocalThemeChange(theme.fileName, false);
-                                await VencordNative.themes.deleteTheme(theme.fileName);
+                                await IriscordNative.themes.deleteTheme(theme.fileName);
                                 refreshLocalThemes();
                             }}
                             theme={theme}
