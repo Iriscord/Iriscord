@@ -84,7 +84,13 @@ if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
         if (Get-Command git -ErrorAction SilentlyContinue) {
             $parent = Split-Path $sourceDir -Parent
             if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
-            & git clone --depth 1 --branch $branch "https://github.com/$repo.git" $sourceDir
+            $prevEap = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            try {
+                $null = & git clone --depth 1 --branch $branch "https://github.com/$repo.git" $sourceDir 2>&1
+            } finally {
+                $ErrorActionPreference = $prevEap
+            }
             if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
         } else {
             $tempZip = Join-Path $env:TEMP "Iriscord-src-$branch.zip"

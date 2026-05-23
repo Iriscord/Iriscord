@@ -25,12 +25,27 @@ function Test-SourceReady([string]$Dir) {
     Test-Path (Join-Path $Dir "package.json")
 }
 
+# Git writes progress to stderr; with $ErrorActionPreference Stop that aborts the script.
+function Invoke-Git {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $null = & git @Args 2>&1
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "git $($Args -join ' ') failed (exit $LASTEXITCODE)"
+    }
+}
+
 function Update-GitSource([string]$Dir) {
     Push-Location $Dir
     try {
         Write-Host "  Updating Iriscord source..." -ForegroundColor DarkGray
-        & git fetch origin $Branch 2>&1 | Out-Null
-        & git reset --hard "origin/$Branch" 2>&1 | Out-Null
+        Invoke-Git fetch origin $Branch
+        Invoke-Git reset --hard "origin/$Branch"
     } finally { Pop-Location }
 }
 
@@ -39,8 +54,7 @@ function Install-GitSource([string]$Dir) {
     $parent = Split-Path $Dir -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
     Write-Host "  Cloning Iriscord (full repo with package.json)..." -ForegroundColor DarkGray
-    & git clone --depth 1 --branch $Branch $RepoUrl $Dir
-    if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
+    Invoke-Git clone --depth 1 --branch $Branch $RepoUrl $Dir
 }
 
 function Install-ZipSource([string]$Dir) {
@@ -66,9 +80,12 @@ function Install-ZipSource([string]$Dir) {
 
 function Ensure-IriscordSource([string]$Dir) {
     if (Test-SourceReady $Dir) {
-        $gitDir = Join-Path $Dir ".git"
-        if ((Test-Path $gitDir) -and (Get-Command git -ErrorAction SilentlyContinue)) {
-            Update-GitSource $Dir
+        # Source already present — skip git pull unless user opts in (avoids stderr noise / failures)
+        if ($env:IRISCORD_GIT_UPDATE -eq "1") {
+            $gitDir = Join-Path $Dir ".git"
+            if ((Test-Path $gitDir) -and (Get-Command git -ErrorAction SilentlyContinue)) {
+                Update-GitSource $Dir
+            }
         }
         return
     }
