@@ -326,6 +326,10 @@ function Stop-DiscordGracefully {
     return $true
 }
 
+function Test-DevRepo {
+    Test-Path (Join-Path $RepoRoot "package.json")
+}
+
 function Test-BuildArtifacts {
     foreach ($f in @("dist\patcher.js", "dist\renderer.js", "dist\iriscordDesktopRenderer.js")) {
         if (-not (Test-Path (Join-Path $RepoRoot $f))) { return $false }
@@ -333,12 +337,31 @@ function Test-BuildArtifacts {
     return $true
 }
 
+function Ensure-PnpmDeps {
+    if (-not (Test-DevRepo) -or (Test-Path (Join-Path $RepoRoot "node_modules"))) { return }
+    if (-not (Test-Command "pnpm")) {
+        if (Test-Command "corepack") { & corepack enable 2>$null }
+    }
+    if (-not (Test-Command "pnpm")) { throw "pnpm is not installed. Run: npm install -g pnpm" }
+    Write-Log step "Installing dependencies..."
+    Push-Location $RepoRoot
+    try {
+        & pnpm install
+        if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
+        Write-Log ok "Dependencies installed"
+    } finally { Pop-Location }
+}
+
 function Invoke-IriscordBuild {
+    if (-not (Test-DevRepo)) {
+        throw "No package.json in $RepoRoot. Re-run the bootstrap script or clone the repo."
+    }
     Write-Log step "Building Iriscord..."
     if (-not (Test-Command "pnpm")) {
         if (Test-Command "corepack") { & corepack enable 2>$null }
     }
     if (-not (Test-Command "pnpm")) { throw "pnpm is not installed. Run: npm install -g pnpm" }
+    Ensure-PnpmDeps
     Push-Location $RepoRoot
     try {
         $prev = $ErrorActionPreference
@@ -427,9 +450,16 @@ function Invoke-InstallFlow {
     Write-Host ""
     Invoke-PreparePatch
     $needsBuild = -not (Test-BuildArtifacts)
-    if ($ForceRebuild -or $Rebuild -or ($needsBuild -and -not $SkipBuild)) {
-        Invoke-IriscordBuild
-        Write-Host ""
+    $wantBuild = $ForceRebuild -or $Rebuild -or ($needsBuild -and -not $SkipBuild)
+    if ($wantBuild) {
+        if (Test-DevRepo) {
+            Invoke-IriscordBuild
+            Write-Host ""
+        } elseif ($Production) {
+            Write-Log info "No local source — will fetch build from GitHub release"
+        } else {
+            throw "dist/ is missing and this folder is not a full Iriscord checkout (no package.json)."
+        }
     } elseif ($needsBuild -and $SkipBuild) {
         Write-Log warn "dist/ incomplete - build recommended"
     } else {
@@ -458,7 +488,16 @@ function Invoke-RepairFlow {
     Write-Rule "Repair Iriscord"
     Write-Host ""
     Invoke-PreparePatch
-    if (-not (Test-BuildArtifacts)) { Invoke-IriscordBuild; Write-Host "" }
+    if (-not (Test-BuildArtifacts)) {
+        if (Test-DevRepo) {
+            Invoke-IriscordBuild
+            Write-Host ""
+        } elseif (-not $Production) {
+            throw "dist/ is missing and this folder is not a full Iriscord checkout (no package.json)."
+        } else {
+            Write-Log info "No local source — will fetch build from GitHub release"
+        }
+    }
     Invoke-InstallerCli -ExtraArgs @("--repair", "-branch", $script:MenuBranch)
     Write-Host ""
     Write-Log done "[Iriscord] Repair finished."
@@ -579,6 +618,14 @@ function Show-DependenciesMenu {
     Write-Host ""
     Write-Rule "Dependencies"
     Write-Host ""
+    if (-not (Test-DevRepo)) {
+        Write-Log warn "This installer folder has no package.json."
+        Write-Rgb "  Re-run the bootstrap one-liner, or clone the repo and run install.ps1 from there." $Brand.Muted
+        Pause-ForMenu
+        return
+    }
+    Write-Rgb "  Source: $RepoRoot" $Brand.Muted
+    Write-Host ""
     Write-MenuItem "1" "pnpm install" "install node modules"
     Write-MenuItem "2" "pnpm build" "compile Iriscord"
     Write-MenuItem "0" "Back"
@@ -591,6 +638,8 @@ function Show-DependenciesMenu {
                 if (-not (Test-Command "pnpm")) { throw "pnpm not found" }
                 Write-Log step "Running pnpm install..."
                 & pnpm install
+                if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
+                Write-Log ok "pnpm install finished"
             }
             "2" { Invoke-IriscordBuild }
             "0" { return }
@@ -676,7 +725,7 @@ function Show-MainMenu {
 }
 
 function Invoke-DirectMode {
-    Set-IriscordEnv
+    Set-IriscordEnv -UseProduction:$Production
     Clear-Host
     Write-Banner
     if ($Install) { Invoke-InstallFlow -DoLaunch:($Launch) }
@@ -693,6 +742,15 @@ try {
     Enable-VirtualTerminal
     if ($Host.Name -eq "ConsoleHost") {
         try { $Host.UI.RawUI.WindowTitle = "Iriscord Installer" } catch { }
+    }
+
+    # Bootstrap sets IRISCORD_USER_DATA_DIR; treat as production when not in a dev checkout
+    if (-not $Production -and $env:IRISCORD_USER_DATA_DIR -and -not $env:IRISCORD_DEV_INSTALL) {
+        $appdataIriscord = Join-Path $env:APPDATA "Iriscord"
+        if ((Resolve-Path $env:IRISCORD_USER_DATA_DIR -ErrorAction SilentlyContinue) -eq
+            (Resolve-Path $appdataIriscord -ErrorAction SilentlyContinue)) {
+            $Production = $true
+        }
     }
 
     $direct = $Install -or $Uninstall -or $Repair -or $NoMenu

@@ -7,7 +7,7 @@ export const PRODUCT = "Iriscord";
 export const DATA_DIR_NAME = "Iriscord";
 
 /** GitHub repo for releases and raw bootstrap files */
-export const GITHUB_REPO = process.env.IRISCORD_GITHUB_REPO || "iriscord/iriscord";
+export const GITHUB_REPO = process.env.IRISCORD_GITHUB_REPO || "Iriscord/Iriscord";
 
 export const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 export const RELEASES_FALLBACK = process.env.IRISCORD_RELEASES_FALLBACK || "";

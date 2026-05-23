@@ -21,10 +21,10 @@ Iriscord is a full rebrand and extension of the [Vencord](https://github.com/Ven
 Open PowerShell and run:
 
 ```powershell
-irm https://github.com/iriscord/iriscord/raw/main/scripts/bootstrap.ps1 | iex
+irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
 ```
 
-This downloads the Iriscord installer and opens the interactive menu. **Node.js** is required ([nodejs.org](https://nodejs.org/)).
+This downloads the full Iriscord source to `%LocalAppData%\Iriscord\source` and opens the interactive installer. **Node.js** and **pnpm** are required ([nodejs.org](https://nodejs.org/)). Use menu option **9** to run `pnpm install`, then **1** to install (which builds and patches Discord).
 
 ### From source (developers)
 
