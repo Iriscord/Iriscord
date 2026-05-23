@@ -15,8 +15,8 @@ export const DATA_DIR_NAME = "Iriscord";
 /** Legacy data directory names — used for one-time migration */
 export const LEGACY_DATA_DIR_NAME = "Iriscord";
 export const LEGACY_DATA_DIR_ALT_NAME = "IriscordData";
-/** Upstream Vencord install folder */
-export const LEGACY_VENCORD_DATA_DIR_NAME = "Vencord";
+/** Upstream Iriscord install folder */
+export const LEGACY_Iriscord_DATA_DIR_NAME = "Iriscord";
 
 /** Default cloud API (override via settings) */
 export const DEFAULT_CLOUD_API_URL = "https://api.iriscord.dev/";

@@ -20,7 +20,7 @@ import { existsSync, mkdirSync } from "fs";
 import { app } from "electron";
 import { join } from "path";
 
-import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME, LEGACY_VENCORD_DATA_DIR_NAME } from "../../shared/branding";
+import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME, LEGACY_Iriscord_DATA_DIR_NAME } from "../../shared/branding";
 
 function resolveDataDir(): string {
     if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
@@ -40,8 +40,8 @@ function resolveDataDir(): string {
     const legacyAlt = join(base, LEGACY_DATA_DIR_ALT_NAME);
     if (existsSync(legacyAlt)) return legacyAlt;
 
-    const legacyVencord = join(base, LEGACY_VENCORD_DATA_DIR_NAME);
-    if (existsSync(legacyVencord)) return legacyVencord;
+    const legacyIriscord = join(base, LEGACY_Iriscord_DATA_DIR_NAME);
+    if (existsSync(legacyIriscord)) return legacyIriscord;
 
     return iriscordDir;
 }

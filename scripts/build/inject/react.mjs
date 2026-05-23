@@ -19,12 +19,12 @@
 export const IriscordFragment = /* #__PURE__*/ Symbol.for("react.fragment");
 /** @deprecated */
 export const Fragment = IriscordFragment;
-/** @deprecated Vencord plugin compat */
-export const VencordFragment = IriscordFragment;
+/** @deprecated Iriscord plugin compat */
+export const IriscordFragment = IriscordFragment;
 
 export let IriscordCreateElement =
     (...args) => (IriscordCreateElement = Iriscord.Webpack.Common.React.createElement)(...args);
 /** @deprecated */
 export let r = IriscordCreateElement;
-/** @deprecated Vencord plugin compat */
-export let VencordCreateElement = IriscordCreateElement;
+/** @deprecated Iriscord plugin compat */
+export let IriscordCreateElement = IriscordCreateElement;

@@ -483,8 +483,8 @@ export const banImportPlugin = (filter, message) => ({
 export const resolveFromProjectNodeModulesPlugin = {
     name: "resolve-from-project-node-modules",
     setup(build) {
-        build.onResolve({ filter: /^@vencord\/discord-types/ }, args =>
-            build.resolve(args.path.replace("@vencord/discord-types", "@Iriscord/discord-types"), {
+        build.onResolve({ filter: /^@Iriscord\/discord-types/ }, args =>
+            build.resolve(args.path.replace("@Iriscord/discord-types", "@Iriscord/discord-types"), {
                 resolveDir: resolve("."),
                 kind: args.kind,
                 importer: args.importer,

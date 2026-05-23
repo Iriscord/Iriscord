@@ -55,7 +55,7 @@ function resolveDataDir() {
         ? join(process.env.DISCORD_USER_DATA_DIR, "..")
         : join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"));
 
-    for (const name of [DATA_DIR_NAME, "Iriscord", "IriscordData", "Vencord"]) {
+    for (const name of [DATA_DIR_NAME, "Iriscord", "IriscordData", "Iriscord"]) {
         const p = join(base, name);
         if (existsSync(p)) return p;
     }
