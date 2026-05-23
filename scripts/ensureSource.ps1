@@ -1,5 +1,5 @@
 #Requires -Version 5.1
-# Shared: download full Iriscord source (git clone or zip).
+# Shared: download full Iriscord source (git clone or zip). No git pull/fetch.
 
 $script:IriscordRepo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
 $script:IriscordBranch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
@@ -10,25 +10,28 @@ function Test-IriscordSourceReady([string]$Dir) {
 
 function Invoke-IriscordGit {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    $prev = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        $null = & git @Args 2>&1
-    } finally {
-        $ErrorActionPreference = $prev
-    }
-    if ($LASTEXITCODE -ne 0) {
-        throw "git $($Args -join ' ') failed (exit $LASTEXITCODE)"
-    }
-}
 
-function Update-IriscordGitSource([string]$Dir) {
-    Push-Location $Dir
-    try {
-        Write-Host "  Updating Iriscord source..." -ForegroundColor DarkGray
-        Invoke-IriscordGit fetch origin $script:IriscordBranch
-        Invoke-IriscordGit reset --hard "origin/$script:IriscordBranch"
-    } finally { Pop-Location }
+    $git = (Get-Command git -ErrorAction Stop).Source
+    $argLine = ($Args | ForEach-Object {
+        if ($_ -match '\s') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ }
+    }) -join ' '
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $git
+    $psi.Arguments = $argLine
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.CreateNoWindow = $true
+
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $null = $proc.StandardOutput.ReadToEnd()
+    $null = $proc.StandardError.ReadToEnd()
+    $proc.WaitForExit()
+
+    if ($proc.ExitCode -ne 0) {
+        throw "git $($Args -join ' ') failed (exit $($proc.ExitCode))"
+    }
 }
 
 function Install-IriscordGitSource([string]$Dir) {
@@ -69,12 +72,6 @@ function Ensure-IriscordSource {
     )
 
     if (Test-IriscordSourceReady $Dir) {
-        if ($env:IRISCORD_GIT_UPDATE -eq "1") {
-            $gitDir = Join-Path $Dir ".git"
-            if ((Test-Path $gitDir) -and (Get-Command git -ErrorAction SilentlyContinue)) {
-                Update-IriscordGitSource $Dir
-            }
-        }
         return $Dir
     }
 

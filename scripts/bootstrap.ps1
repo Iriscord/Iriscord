@@ -5,9 +5,11 @@
 
 .DESCRIPTION
     Downloads the full Iriscord source into %TEMP%\Iriscord-Setup, then launches the installer.
-    Works with: irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
 
-    NOTE: When run via "irm | iex", $PSScriptRoot is empty — all download logic is inlined here.
+    Run (use -OutFile if "irm | iex" shows a stale/cached script):
+      $b = "$env:TEMP\Iriscord-bootstrap.ps1"
+      Invoke-WebRequest "https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1" -OutFile $b -UseBasicParsing
+      & $b
 #>
 
 $ErrorActionPreference = "Stop"
@@ -25,28 +27,31 @@ function Test-SourceReady([string]$Dir) {
     Test-Path (Join-Path $Dir "package.json")
 }
 
-# Git writes progress to stderr; with $ErrorActionPreference Stop that aborts the script.
+# Run git without PowerShell treating stderr as a fatal error (common with "irm | iex").
 function Invoke-Git {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    $prev = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        $null = & git @Args 2>&1
-    } finally {
-        $ErrorActionPreference = $prev
-    }
-    if ($LASTEXITCODE -ne 0) {
-        throw "git $($Args -join ' ') failed (exit $LASTEXITCODE)"
-    }
-}
 
-function Update-GitSource([string]$Dir) {
-    Push-Location $Dir
-    try {
-        Write-Host "  Updating Iriscord source..." -ForegroundColor DarkGray
-        Invoke-Git fetch origin $Branch
-        Invoke-Git reset --hard "origin/$Branch"
-    } finally { Pop-Location }
+    $git = (Get-Command git -ErrorAction Stop).Source
+    $argLine = ($Args | ForEach-Object {
+        if ($_ -match '\s') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ }
+    }) -join ' '
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $git
+    $psi.Arguments = $argLine
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.CreateNoWindow = $true
+
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $null = $proc.StandardOutput.ReadToEnd()
+    $null = $proc.StandardError.ReadToEnd()
+    $proc.WaitForExit()
+
+    if ($proc.ExitCode -ne 0) {
+        throw "git $($Args -join ' ') failed (exit $($proc.ExitCode))"
+    }
 }
 
 function Install-GitSource([string]$Dir) {
@@ -80,13 +85,7 @@ function Install-ZipSource([string]$Dir) {
 
 function Ensure-IriscordSource([string]$Dir) {
     if (Test-SourceReady $Dir) {
-        # Source already present — skip git pull unless user opts in (avoids stderr noise / failures)
-        if ($env:IRISCORD_GIT_UPDATE -eq "1") {
-            $gitDir = Join-Path $Dir ".git"
-            if ((Test-Path $gitDir) -and (Get-Command git -ErrorAction SilentlyContinue)) {
-                Update-GitSource $Dir
-            }
-        }
+        Write-Host "  Using existing source (package.json found)." -ForegroundColor DarkGray
         return
     }
 
