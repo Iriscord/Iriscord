@@ -7,6 +7,10 @@
     "license": "LGPL-3.0-or-later",
     "types": "src/index.d.ts",
     "type": "module",
+    "exports": {
+        ".": "./src/index.d.ts",
+        "./enums": "./enums/index.ts"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Iriscord/Iriscord.git",

@@ -18,8 +18,13 @@
 
 export const IriscordFragment = /* #__PURE__*/ Symbol.for("react.fragment");
 /** @deprecated */
-export const IriscordFragment = IriscordFragment;
+export const Fragment = IriscordFragment;
+/** @deprecated Vencord plugin compat */
+export const VencordFragment = IriscordFragment;
+
 export let IriscordCreateElement =
     (...args) => (IriscordCreateElement = Iriscord.Webpack.Common.React.createElement)(...args);
 /** @deprecated */
-export let IriscordCreateElement = IriscordCreateElement;
+export let r = IriscordCreateElement;
+/** @deprecated Vencord plugin compat */
+export let VencordCreateElement = IriscordCreateElement;

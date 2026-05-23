@@ -363,7 +363,7 @@ export const gitRemotePlugin = {
                         .replace("git@github.com:", "")
                         .replace(/.git$/, "");
                 } catch {
-                    remote = "iriscord/iriscord";
+                    remote = "Iriscord/Iriscord";
                 }
             }
 
@@ -483,6 +483,15 @@ export const banImportPlugin = (filter, message) => ({
 export const resolveFromProjectNodeModulesPlugin = {
     name: "resolve-from-project-node-modules",
     setup(build) {
+        build.onResolve({ filter: /^@vencord\/discord-types/ }, args =>
+            build.resolve(args.path.replace("@vencord/discord-types", "@Iriscord/discord-types"), {
+                resolveDir: resolve("."),
+                kind: args.kind,
+                importer: args.importer,
+                pluginData: { redirected: true }
+            })
+        );
+
         const filter = /^[^./]/;
         build.onResolve({ filter }, async args => {
             if (args.pluginData?.redirected) return null;

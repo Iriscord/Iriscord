@@ -18,4 +18,4 @@ export { default as ThemesTab } from "./themes";
 export { default as UpdaterTab } from "./updater";
 export { default as IriscordTab } from "./iriscord";
 /** @deprecated Use IriscordTab */
-export { default as IriscordTab } from "./iriscord";
+export { default as VencordTab } from "./iriscord";

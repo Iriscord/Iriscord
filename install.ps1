@@ -285,8 +285,8 @@ function Get-IriscordDataDir {
     $base = $env:APPDATA
     $candidates = @(
         (Join-Path $base "Iriscord"),
-        (Join-Path $base "Iriscord"),
-        (Join-Path $base "IriscordData")
+        (Join-Path $base "IriscordData"),
+        (Join-Path $base "Vencord")
     )
     foreach ($d in $candidates) {
         if (Test-Path $d) { return $d }
