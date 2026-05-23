@@ -17,5 +17,3 @@ export { default as CloudTab } from "./sync/CloudTab";
 export { default as ThemesTab } from "./themes";
 export { default as UpdaterTab } from "./updater";
 export { default as IriscordTab } from "./iriscord";
-/** @deprecated Use IriscordTab */
-export { default as IriscordTab } from "./iriscord";

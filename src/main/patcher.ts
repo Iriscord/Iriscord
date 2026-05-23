@@ -17,13 +17,22 @@
 */
 
 import { onceDefined } from "@shared/onceDefined";
-import electron, { app, BrowserWindowConstructorOptions, Menu } from "electron";
+import electron, { app, BrowserWindowConstructorOptions, Menu, session } from "electron";
 import { dirname, join } from "path";
 
 import { RendererSettings } from "./settings";
 import { IS_VANILLA } from "./utils/constants";
 
 console.log("[Iriscord] Starting up...");
+
+// Fix: Discord triggers a Windows Security "passkey / security key" prompt on startup
+// via WebAuthn / client certificate negotiation, which leaves Discord stuck on "Starting...".
+// We intercept this at the app level and immediately dismiss it so Discord can load normally.
+app.on("select-client-certificate", (event, webContents, url, list, callback) => {
+    // Prevent the OS dialog from showing and immediately cancel the certificate selection.
+    event.preventDefault();
+    callback(undefined as any);
+});
 
 // Our injector file at app/index.js
 const injectorPath = require.main!.filename;
@@ -109,6 +118,12 @@ if (!IS_VANILLA) {
 
             super(options);
 
+            // Also block the passkey/security key dialog at the per-window level
+            this.webContents.on("select-client-certificate" as any, (event: any, url: string, list: any[], callback: (certificate?: any) => void) => {
+                event.preventDefault();
+                callback(undefined as any);
+            });
+
             if (disableMinSize) {
                 // Disable the Electron call entirely so that Discord can't dynamically change the size
                 this.setMinimumSize = (_width: number, _height: number) => { };
@@ -139,16 +154,22 @@ if (!IS_VANILLA) {
     // Monkey patch commandLine to:
     // - disable WidgetLayering: Fix DevTools context menus https://github.com/electron/electron/issues/38790
     // - disable UseEcoQoSForBackgroundProcess: Work around Discord unloading when in background
+    // - disable WebAuthentication: Prevents the Windows passkey/security key dialog on startup
     const originalAppend = app.commandLine.appendSwitch;
     app.commandLine.appendSwitch = function (...args) {
         if (args[0] === "disable-features") {
             const disabledFeatures = new Set((args[1] ?? "").split(","));
             disabledFeatures.add("WidgetLayering");
             disabledFeatures.add("UseEcoQoSForBackgroundProcess");
-            args[1] += [...disabledFeatures].join(",");
+            disabledFeatures.add("WebAuthentication");
+            // Fix: use assignment (=) not append (+=) to avoid doubling the feature string
+            args[1] = [...disabledFeatures].join(",");
         }
         return originalAppend.apply(this, args);
     };
+
+    // Proactively disable WebAuthn/passkey prompt before Discord can register it
+    app.commandLine.appendSwitch("disable-features", "WebAuthentication");
 
     // disable renderer backgrounding to prevent the app from unloading when in the background
     // https://github.com/electron/electron/issues/2822

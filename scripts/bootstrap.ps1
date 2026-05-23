@@ -30,9 +30,30 @@ function Test-InstallScriptValid([string]$Path) {
     return ($null -eq $parseErrors -or $parseErrors.Count -eq 0)
 }
 
+function Test-ReactInjectValid([string]$Dir) {
+    $react = Join-Path $Dir "scripts\build\inject\react.mjs"
+    if (-not (Test-Path $react)) { return $false }
+    $content = Get-Content $react -Raw
+    return $content -notmatch 'export const IriscordFragment = IriscordFragment' `
+        -and $content -notmatch 'export let IriscordCreateElement = IriscordCreateElement'
+}
+
 function Test-SourceReady([string]$Dir) {
     if (-not (Test-Path (Join-Path $Dir "package.json"))) { return $false }
+    if (-not (Test-ReactInjectValid $Dir)) { return $false }
     Test-InstallScriptValid (Join-Path $Dir "install.ps1")
+}
+
+function Get-PreferredSourceDir {
+    @(
+        $env:IRISCORD_REPO_ROOT,
+        (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
+        (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
+        $SourceDir
+    ) | Where-Object { $_ } | ForEach-Object {
+        if (Test-SourceReady $_) { return $_ }
+    }
+    return $SourceDir
 }
 
 # Run git without PowerShell treating stderr as a fatal error (common with "irm | iex").
@@ -113,6 +134,7 @@ function Ensure-IriscordSource([string]$Dir) {
 }
 
 Write-Host ""
+$SourceDir = Get-PreferredSourceDir
 Ensure-IriscordSource $SourceDir
 
 $env:IRISCORD_USER_DATA_DIR = Join-Path $env:APPDATA "Iriscord"

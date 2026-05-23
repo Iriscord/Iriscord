@@ -10,7 +10,6 @@ if %ERR% neq 0 (
     exit /b %ERR%
 )
 if /i "%~1"=="" (
-    echo.
-    pause
+    rem Menu mode: install.ps1 already waits for Enter between steps
 )
 exit /b 0

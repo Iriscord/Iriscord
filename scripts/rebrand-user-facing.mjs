@@ -8,6 +8,9 @@ import { join, extname } from "path";
 
 const ROOT = join(import.meta.dirname, "..");
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "packages/iriscord-types/node_modules"]);
+const SKIP_FILES = new Set([
+    "scripts/build/inject/react.mjs",
+]);
 const EXT = new Set([".ts", ".tsx", ".mjs", ".js", ".css", ".html", ".md", ".json"]);
 
 const REPLACEMENTS = [
@@ -57,6 +60,8 @@ function walk(dir, files = []) {
 let changed = 0;
 for (const file of walk(ROOT)) {
     if (file.includes("rebrand-user-facing")) continue;
+    const rel = file.replace(ROOT + "\\", "").replace(ROOT + "/", "");
+    if (SKIP_FILES.has(rel)) continue;
     let content = readFileSync(file, "utf8");
     const orig = content;
     for (const [re, sub] of REPLACEMENTS) {

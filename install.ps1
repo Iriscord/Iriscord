@@ -32,6 +32,10 @@
 
 .PARAMETER Production
     Install to %AppData%\\Iriscord (not dev mode from repo). Used by the web bootstrap script.
+
+.PARAMETER Dev
+    Load Iriscord from this repo's dist/ folder instead of copying to AppData.
+    Can trigger Windows folder-protection prompts and break Discord if the repo moves.
 #>
 
 [CmdletBinding(DefaultParameterSetName = "Menu")]
@@ -48,6 +52,7 @@ param(
     [switch]$Launch,
     [switch]$NoMenu,
     [switch]$Production,
+    [switch]$Dev,
     [ValidateSet("auto", "stable", "canary", "ptb", "")]
     [string]$Branch = ""
 )
@@ -70,14 +75,39 @@ $Brand = @{
 
 $RepoRoot = $PSScriptRoot
 
+function Test-IriscordReactInject([string]$Root) {
+    $react = Join-Path $Root "scripts\build\inject\react.mjs"
+    if (-not (Test-Path $react)) { return $false }
+    $content = Get-Content $react -Raw
+    return $content -notmatch 'export const IriscordFragment = IriscordFragment' `
+        -and $content -notmatch 'export let IriscordCreateElement = IriscordCreateElement'
+}
+
+function Get-PreferredIriscordSource {
+    @(
+        $env:IRISCORD_REPO_ROOT,
+        (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
+        (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
+        (Join-Path $env:TEMP "Iriscord-Setup")
+    ) | Where-Object { $_ } | ForEach-Object {
+        if ((Test-Path (Join-Path $_ "package.json")) -and (Test-IriscordReactInject $_)) { return $_ }
+    }
+    return $null
+}
+
 # Old bootstrap only copied install scripts (no package.json). Fetch full repo into Iriscord-Setup.
 if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
-    $sourceDir = Join-Path $env:TEMP "Iriscord-Setup"
+    $preferred = Get-PreferredIriscordSource
+    $sourceDir = if ($preferred) { $preferred } else { Join-Path $env:TEMP "Iriscord-Setup" }
     $repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
     $branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
     $zipUrl = "https://github.com/$repo/archive/refs/heads/$branch.zip"
 
-    if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
+    $needsDownload = -not (Test-Path (Join-Path $sourceDir "package.json")) -or -not (Test-IriscordReactInject $sourceDir)
+    if ($preferred -and -not $needsDownload) {
+        Write-Host "  Using local Iriscord source at $sourceDir" -ForegroundColor DarkGray
+    }
+    elseif ($needsDownload) {
         Write-Host ""
         Write-Host "  No package.json here - downloading full Iriscord source..." -ForegroundColor DarkGray
         if (Test-Path $sourceDir) { Remove-Item -Path $sourceDir -Recurse -Force }
@@ -108,6 +138,9 @@ if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
         }
         if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
             throw "Failed to download source - package.json still missing in $sourceDir"
+        }
+        if (-not (Test-IriscordReactInject $sourceDir)) {
+            throw "Downloaded source has a broken scripts/build/inject/react.mjs. Pull latest from GitHub or set IRISCORD_REPO_ROOT to a fixed checkout."
         }
     }
 
@@ -259,9 +292,17 @@ function Test-Command([string]$Name) {
     [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Test-UseProductionInstall {
+  if ($Dev) { return $false }
+  if ($Production) { return $true }
+  # Default: copy dist to AppData so Discord is not blocked from reading Documents
+  return $true
+}
+
 function Set-IriscordEnv {
     param([switch]$UseProduction)
-    if ($UseProduction -or $Production) {
+    $production = if ($PSBoundParameters.ContainsKey("UseProduction")) { $UseProduction } else { Test-UseProductionInstall }
+    if ($production) {
         $data = Get-IriscordDataDir
         $env:IRISCORD_USER_DATA_DIR = $data
         Remove-Item Env:IRISCORD_DEV_INSTALL -ErrorAction SilentlyContinue
@@ -436,7 +477,12 @@ function Invoke-InstallerCli {
     if (-not (Test-Command "node")) { throw "Node.js is not installed or not on PATH." }
     $runner = Join-Path $RepoRoot "scripts\installDiscord.mjs"
     if (-not (Test-Path $runner)) { throw "Missing scripts\installDiscord.mjs" }
-    Set-IriscordEnv -UseProduction:$Production
+    Set-IriscordEnv
+    if (Test-UseProductionInstall) {
+        Write-Log info "Install mode" "copy build to %AppData%\Iriscord\dist"
+    } else {
+        Write-Log warn "Dev install mode" "Discord loads from repo (may trigger Windows security prompts)"
+    }
     $args = @($runner) + $ExtraArgs
     Write-Log step "Patching Discord..."
     Push-Location $RepoRoot
@@ -705,7 +751,7 @@ function Show-DependenciesMenu {
 
 function Pause-ForMenu {
     Write-Host ""
-    Write-Rgb "  Press Enter to continue..." $Brand.Muted
+    Write-Rgb "  Press Enter to return to the menu..." $Brand.Muted
     [void](Read-Host)
 }
 
@@ -778,7 +824,7 @@ function Show-MainMenu {
 }
 
 function Invoke-DirectMode {
-    Set-IriscordEnv -UseProduction:$Production
+    Set-IriscordEnv
     Clear-Host
     Write-Banner
     if ($Install) { Invoke-InstallFlow -DoLaunch:($Launch) }

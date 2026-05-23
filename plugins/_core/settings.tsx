@@ -166,6 +166,10 @@ export default definePlugin({
 
         if (layout.some(s => s?.key === "Iriscord_section")) return layout;
 
+        // Remove legacy section from an older client build still in memory
+        const legacySection = layout.findIndex(s => s?.key === "Vencord_section");
+        if (legacySection !== -1) layout.splice(legacySection, 1);
+
         const { buildEntry } = this;
 
         const IriscordEntries: SettingsLayoutNode[] = [
