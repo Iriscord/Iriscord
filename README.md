@@ -7,9 +7,8 @@ Iriscord is a full rebrand and extension of the [Vencord](https://github.com/Ven
 ## Features
 
 - Easy to install (same injection model as Vencord)
-- 100+ built-in plugins from the Vencord tree, plus Iriscord-exclusive plugins under `src/plugins/`
 - Vencord plugin compatibility via `window.Vencord` and `VencordNative` aliases
-- Custom CSS and themes with a purple/black **Iris** visual language
+- Custom CSS and themes 
 - Privacy-friendly defaults (blocks Discord analytics & crash reporting)
 - Cross-platform: Windows, Linux, macOS, and browser builds
 - Optional transparency, acrylic/Mica (Windows), and vibrancy (macOS)

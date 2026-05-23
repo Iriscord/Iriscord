@@ -70,22 +70,41 @@ $Brand = @{
 
 $RepoRoot = $PSScriptRoot
 
-# Old bootstrap only copied install scripts (no package.json). Fetch full source into Iriscord-Setup.
+# Old bootstrap only copied install scripts (no package.json). Fetch full repo into Iriscord-Setup.
 if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
     $sourceDir = Join-Path $env:TEMP "Iriscord-Setup"
-    $ensureScript = Join-Path $RepoRoot "scripts\ensureSource.ps1"
-    if (-not (Test-Path $ensureScript)) {
-        $repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
-        $branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
-        $raw = "https://github.com/$repo/raw/$branch"
-        $scriptParent = Split-Path $ensureScript -Parent
-        if (-not (Test-Path $scriptParent)) { New-Item -ItemType Directory -Path $scriptParent -Force | Out-Null }
+    $repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
+    $branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
+    $zipUrl = "https://github.com/$repo/archive/refs/heads/$branch.zip"
+
+    if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
         Write-Host ""
-        Write-Host "  Downloading full Iriscord source (package.json + project)..." -ForegroundColor DarkGray
-        Invoke-WebRequest -Uri "$raw/scripts/ensureSource.ps1" -OutFile $ensureScript -UseBasicParsing
+        Write-Host "  No package.json here — downloading full Iriscord source..." -ForegroundColor DarkGray
+        if (Test-Path $sourceDir) { Remove-Item -Path $sourceDir -Recurse -Force }
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            $parent = Split-Path $sourceDir -Parent
+            if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+            & git clone --depth 1 --branch $branch "https://github.com/$repo.git" $sourceDir
+            if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
+        } else {
+            $tempZip = Join-Path $env:TEMP "Iriscord-src-$branch.zip"
+            $tempExtract = Join-Path $env:TEMP "Iriscord-src-extract"
+            if (Test-Path $tempExtract) { Remove-Item -Path $tempExtract -Recurse -Force }
+            Invoke-WebRequest -Uri $zipUrl -OutFile $tempZip -UseBasicParsing
+            Expand-Archive -Path $tempZip -DestinationPath $tempExtract -Force
+            $extracted = Get-ChildItem -Path $tempExtract -Directory | Select-Object -First 1
+            if (-not $extracted) { throw "Downloaded archive was empty" }
+            $parent = Split-Path $sourceDir -Parent
+            if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+            Move-Item -Path $extracted.FullName -Destination $sourceDir
+            Remove-Item -Path $tempZip -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $tempExtract -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        if (-not (Test-Path (Join-Path $sourceDir "package.json"))) {
+            throw "Failed to download source — package.json still missing in $sourceDir"
+        }
     }
-    . $ensureScript
-    Ensure-IriscordSource -Dir $sourceDir | Out-Null
+
     $current = (Resolve-Path $RepoRoot -ErrorAction SilentlyContinue).Path
     $target = (Resolve-Path $sourceDir).Path
     if ($current -ne $target) {
