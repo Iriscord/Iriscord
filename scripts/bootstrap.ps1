@@ -77,12 +77,34 @@ function Invoke-Git {
 }
 
 function Install-GitSource([string]$Dir) {
-    if (Test-Path $Dir) { Remove-Item -Path $Dir -Recurse -Force }
+    # Windows can occasionally lock the source dir while other processes still hold file handles.
+    # Retry deletion to avoid failing the whole bootstrap.
+    if (Test-Path $Dir) {
+        $maxAttempts = 30
+        $delaySeconds = 1
+        for ($i = 1; $i -le $maxAttempts; $i++) {
+            try {
+                # Best-effort: also try taking ownership/clearing read-only issues.
+                Get-ChildItem -Path $Dir -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+                    try { $_.IsReadOnly = $false } catch {}
+                }
+
+                Remove-Item -Path $Dir -Recurse -Force -ErrorAction Stop
+                break
+            } catch {
+                if ($i -eq $maxAttempts) { throw }
+                Start-Sleep -Seconds $delaySeconds
+            }
+        }
+    }
+
+
     $parent = Split-Path $Dir -Parent
     if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
     Write-Host "  Cloning $Repo..." -ForegroundColor DarkGray
     Invoke-Git clone --depth 1 --branch $Branch $RepoUrl $Dir
 }
+
 
 function Install-ZipSource([string]$Dir) {
     $tempZip = Join-Path $env:TEMP "Iriscord-src-$Branch.zip"
