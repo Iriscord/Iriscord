@@ -84,12 +84,30 @@ async function calculateGitChanges() {
         const branch = (await safeGit("branch", "--show-current")).stdout.trim();
         if (!branch) return [];
 
-        const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
-        if (!existsOnOrigin) return [];
+        // Prefer upstream-tracking ref when available: @{u}
+        // (e.g. refs/remotes/origin/main). If not set, fall back to origin/<branch>.
+        let upstreamRef = "";
+        try {
+            upstreamRef = (await safeGit("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")).stdout.trim();
+        } catch {
+            // ignore
+        }
+
+        if (!upstreamRef) upstreamRef = `origin/${branch}`;
+
+        // Ensure remote ref exists.
+        // Using rev-parse keeps it consistent across environments.
+        const refExists = (await git("rev-parse", "--verify", upstreamRef)).stdout !== undefined;
+        if (!refExists) {
+            const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
+            if (!existsOnOrigin) return [];
+        }
 
         const res = await git(
             "log",
-            `HEAD...origin/${branch}`,
+            upstreamRef,
+            "--not",
+            "HEAD",
             "--pretty=format:%an/%h/%s"
         );
 
