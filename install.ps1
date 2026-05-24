@@ -74,13 +74,18 @@ $Brand = @{
 
 $RepoRoot = $PSScriptRoot
 
+$pnpmHelpers = Join-Path $RepoRoot "scripts\iriscord-pnpm.ps1"
+if (-not (Test-Path $pnpmHelpers)) {
+    $pnpmHelpers = Join-Path $env:LOCALAPPDATA "Iriscord\source\scripts\iriscord-pnpm.ps1"
+}
+if (Test-Path $pnpmHelpers) { . $pnpmHelpers }
+
 function Resolve-IriscordSourceRoot {
     if (Test-Path (Join-Path $RepoRoot "package.json")) { return $RepoRoot }
     foreach ($dir in @(
         $env:IRISCORD_SOURCE_DIR,
         (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
-        (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
-        (Join-Path $env:TEMP "Iriscord-Setup")
+        (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord")
     )) {
         if ($dir -and (Test-Path (Join-Path $dir "package.json"))) { return $dir }
     }
@@ -88,6 +93,11 @@ function Resolve-IriscordSourceRoot {
 }
 
 $RepoRoot = Resolve-IriscordSourceRoot
+$pnpmHelpers = Join-Path $RepoRoot "scripts\iriscord-pnpm.ps1"
+if (Test-Path $pnpmHelpers) {
+    . $pnpmHelpers
+    Repair-IriscordPnpmConfig -Dir $RepoRoot
+}
 if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
     throw @"
 Iriscord source not found. Run the bootstrap one-liner first:
@@ -628,15 +638,14 @@ function Show-DependenciesMenu {
         switch ($c) {
             "1" {
                 if (-not (Test-Command "pnpm")) { throw "pnpm not found" }
+                if (-not (Test-Command "node")) { throw "node not found" }
                 Write-Log step "Running pnpm install..."
-                & pnpm install 2>&1 | ForEach-Object {
-                    $line = "$_"
-                    if ($line -match 'The "pnpm" field in package\.json') { return }
-                    if ($line -match "WARN|warn") { Write-Rgb "    $line" $Brand.Warning }
-                    elseif ($line -match "ERROR|error:|failed|ELIFECYCLE") { Write-Rgb "    $line" $Brand.Error }
-                    else { Write-Rgb "    $line" $Brand.Muted }
+                if (Get-Command Invoke-IriscordPnpmInstall -ErrorAction SilentlyContinue) {
+                    Invoke-IriscordPnpmInstall -Dir $RepoRoot
+                } else {
+                    & pnpm install
+                    if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
                 }
-                if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
             }
             "2" { Invoke-IriscordBuild }
             "0" { return }

@@ -12,6 +12,8 @@
 
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "iriscord-pnpm.ps1")
+
 $Repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
 $Branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
 $env:IRISCORD_GITHUB_REPO = $Repo
@@ -22,7 +24,9 @@ $RepoUrl = "https://github.com/$Repo.git"
 $ZipUrl = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
 
 function Test-SourceReady([string]$Dir) {
-    (Test-Path (Join-Path $Dir "package.json")) -and (Test-Path (Join-Path $Dir "pnpm-workspace.yaml"))
+    if (-not (Test-Path (Join-Path $Dir "package.json"))) { return $false }
+    if (Test-IriscordSourceNeedsPnpmRepair $Dir) { return $false }
+    return $true
 }
 
 function Invoke-Git {
@@ -107,8 +111,9 @@ function Ensure-IriscordSource([string]$Dir) {
     }
 
     if (-not (Test-SourceReady $Dir)) {
-        throw "Source install failed: package.json or pnpm-workspace.yaml missing in $Dir"
+        throw "Source install failed in $Dir"
     }
+    Repair-IriscordPnpmConfig -Dir $Dir
 }
 
 Write-Host ""
