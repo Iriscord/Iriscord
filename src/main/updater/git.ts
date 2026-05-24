@@ -52,7 +52,7 @@ function git(...args: string[]) {
     const opts = { cwd: IRISCORD_SRC_DIR };
 
     if (isFlatpak) return execFile("flatpak-spawn", ["--host", "git", ...args], opts);
-    else return execFile("git", args, opts);
+    return execFile("git", args, opts);
 }
 
 async function safeGit(...args: string[]) {
@@ -77,31 +77,36 @@ async function getRepo() {
 }
 
 async function calculateGitChanges() {
-    // Show "updates available" only when the remote branch has advanced compared to our HEAD.
-    await safeGit("fetch", "--prune");
+    try {
+        // IMPORTANT: this function must never throw, otherwise the UI shows "unknown error occured".
+        await safeGit("fetch", "--prune");
 
-    const branch = (await safeGit("branch", "--show-current")).stdout.trim();
+        const branch = (await safeGit("branch", "--show-current")).stdout.trim();
+        if (!branch) return [];
 
-    const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
-    if (!existsOnOrigin) return [];
+        const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
+        if (!existsOnOrigin) return [];
 
-    const res = await git(
-        "log",
-        `HEAD...origin/${branch}`,
-        "--pretty=format:%an/%h/%s"
-    );
+        const res = await git(
+            "log",
+            `HEAD...origin/${branch}`,
+            "--pretty=format:%an/%h/%s"
+        );
 
-    const commits = res.stdout.trim();
-    if (!commits) return [];
+        const commits = res.stdout.trim();
+        if (!commits) return [];
 
-    return commits.split("\n").map(line => {
-        const [author, hash, ...rest] = line.split("/");
-        return {
-            hash,
-            author,
-            message: rest.join("/").split("\n")[0]
-        };
-    });
+        return commits.split("\n").map(line => {
+            const [author, hash, ...rest] = line.split("/");
+            return {
+                hash,
+                author,
+                message: rest.join("/").split("\n")[0]
+            };
+        });
+    } catch {
+        return [];
+    }
 }
 
 async function runBootstrapScript() {
@@ -115,13 +120,12 @@ async function runBootstrapScript() {
     // If not on Windows, this updater variant is expected to be overridden by the standalone/updater.
     const opts = { cwd: IRISCORD_SRC_DIR };
 
-    const res = await execFile(
+    await execFile(
         "powershell",
         ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psCommand],
         opts
     );
 
-    // execFile throws on non-zero exit codes, so reaching here means success.
     return true;
 }
 
