@@ -12,12 +12,36 @@
 
 $ErrorActionPreference = "Stop"
 
-. (Join-Path $PSScriptRoot "iriscord-pnpm.ps1")
-
 $Repo = if ($env:IRISCORD_GITHUB_REPO) { $env:IRISCORD_GITHUB_REPO } else { "Iriscord/Iriscord" }
 $Branch = if ($env:IRISCORD_GITHUB_BRANCH) { $env:IRISCORD_GITHUB_BRANCH } else { "main" }
 $env:IRISCORD_GITHUB_REPO = $Repo
 $env:IRISCORD_GITHUB_BRANCH = $Branch
+
+$RawScripts = "https://raw.githubusercontent.com/$Repo/$Branch/scripts"
+
+function Get-BootstrapScriptDir {
+    if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot "iriscord-pnpm.ps1"))) {
+        return $PSScriptRoot
+    }
+
+    $cache = Join-Path $env:LOCALAPPDATA "Iriscord\bootstrap-cache"
+    $null = New-Item -ItemType Directory -Path $cache -Force
+
+    foreach ($name in @("iriscord-pnpm.ps1", "repair-pnpm-config.mjs")) {
+        $dest = Join-Path $cache $name
+        $url = "$RawScripts/$name"
+        Write-Host "  Downloading $name..." -ForegroundColor DarkGray
+        Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
+        if (-not (Test-Path $dest) -or (Get-Item $dest).Length -eq 0) {
+            throw "Failed to download $url"
+        }
+    }
+
+    return $cache
+}
+
+$BootstrapScriptDir = Get-BootstrapScriptDir
+. (Join-Path $BootstrapScriptDir "iriscord-pnpm.ps1")
 
 $SourceDir = Join-Path $env:LOCALAPPDATA "Iriscord\source"
 $RepoUrl = "https://github.com/$Repo.git"
@@ -94,12 +118,17 @@ function Ensure-IriscordSource([string]$Dir) {
         if (Get-Command git -ErrorAction SilentlyContinue) {
             if (Test-Path (Join-Path $Dir ".git")) {
                 Write-Host "  Updating existing source..." -ForegroundColor DarkGray
-                try { Update-GitSource $Dir; return } catch {
+                try {
+                    Update-GitSource $Dir
+                    Repair-IriscordPnpmConfig -Dir $Dir
+                    return
+                } catch {
                     Write-Host "  Update failed, re-downloading..." -ForegroundColor DarkGray
                 }
             }
         } else {
             Write-Host "  Using existing source at $Dir" -ForegroundColor DarkGray
+            Repair-IriscordPnpmConfig -Dir $Dir
             return
         }
     }
@@ -134,5 +163,10 @@ Write-Host "  Source: $SourceDir" -ForegroundColor DarkGray
 Write-Host "  Launching installer..." -ForegroundColor DarkGray
 Write-Host ""
 
+$installPs1 = Join-Path $SourceDir "install.ps1"
+if (-not (Test-Path $installPs1)) {
+    throw "install.ps1 not found in $SourceDir"
+}
+
 Set-Location $SourceDir
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $SourceDir "install.ps1") -Production @args
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installPs1 -Production

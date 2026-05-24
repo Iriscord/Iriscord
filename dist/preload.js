@@ -1,4 +1,4 @@
-// Iriscord local
+// Iriscord 565d82b
 // Standalone: false
 // Platform: win32
 // Updater Disabled: false
