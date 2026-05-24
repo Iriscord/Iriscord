@@ -32,6 +32,22 @@ const isFlatpak = process.platform === "linux" && !!process.env.FLATPAK_ID;
 
 if (process.platform === "darwin") process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
 
+async function ensureGitRepo() {
+    // If the user is running from a non-git checkout (e.g. downloaded/copy of files),
+    // Git will fail with: "fatal: not a git repository".
+    // In that case, we throw a clearer error so the UI can suggest re-install.
+    try {
+        const res = await git("rev-parse", "--is-inside-work-tree");
+        if (res.stdout.trim() !== "true")
+            throw new Error("Iriscord was not installed from a git checkout (missing .git). Re-install with the official installer to enable updater.");
+    } catch (e: any) {
+        // Re-throw with a deterministic message for UI/logs.
+        if (String(e?.stderr ?? e?.message ?? "").includes("not a git repository"))
+            throw new Error("Updater requires a git checkout (missing .git). Re-install with the official installer to enable updater.");
+        throw e;
+    }
+}
+
 function git(...args: string[]) {
     const opts = { cwd: IRISCORD_SRC_DIR };
 
@@ -39,39 +55,81 @@ function git(...args: string[]) {
     else return execFile("git", args, opts);
 }
 
+async function safeGit(...args: string[]) {
+    await ensureGitRepo();
+    return git(...args);
+}
+
 async function getRepo() {
-    const res = await git("remote", "get-url", "origin");
-    return res.stdout.trim()
-        .replace(/git@(.+):/, "https://$1/")
-        .replace(/\.git$/, "");
+    // Prefer reading remote URL, but fall back to the compile-time gitRemote
+    // so the UI doesn't break when git metadata isn't available.
+    try {
+        const res = await safeGit("remote", "get-url", "origin");
+
+        return res.stdout.trim()
+            .replace(/git@(.+):/, "https://$1/")
+            .replace(/\.git$/, "");
+    } catch {
+        // ~git-remote is injected at build time.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return `https://github.com/${(globalThis as any).gitRemote ?? "Iriscord/Iriscord"}`;
+    }
 }
 
 async function calculateGitChanges() {
-    await git("fetch");
+    // Show "updates available" only when the remote branch has advanced compared to our HEAD.
+    await safeGit("fetch", "--prune");
 
-    const branch = (await git("branch", "--show-current")).stdout.trim();
+    const branch = (await safeGit("branch", "--show-current")).stdout.trim();
 
-    const existsOnOrigin = (await git("ls-remote", "origin", branch)).stdout.length > 0;
+    const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
     if (!existsOnOrigin) return [];
 
-    const res = await git("log", `HEAD...origin/${branch}`, "--pretty=format:%an/%h/%s");
+    const res = await git(
+        "log",
+        `HEAD...origin/${branch}`,
+        "--pretty=format:%an/%h/%s"
+    );
 
     const commits = res.stdout.trim();
-    return commits ? commits.split("\n").map(line => {
+    if (!commits) return [];
+
+    return commits.split("\n").map(line => {
         const [author, hash, ...rest] = line.split("/");
         return {
-            hash, author,
+            hash,
+            author,
             message: rest.join("/").split("\n")[0]
         };
-    }) : [];
+    });
 }
 
-async function pull() {
-    const res = await git("pull");
-    return res.stdout.includes("Fast-forward");
+async function runBootstrapScript() {
+    // Execute the official bootstrap script.
+    // The script itself will prompt for manual vs auto and handle the UI steps.
+    await ensureGitRepo();
+
+    const psCommand = "irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex";
+
+    // Always use powershell on Windows.
+    // If not on Windows, this updater variant is expected to be overridden by the standalone/updater.
+    const opts = { cwd: IRISCORD_SRC_DIR };
+
+    const res = await execFile(
+        "powershell",
+        ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psCommand],
+        opts
+    );
+
+    // execFile throws on non-zero exit codes, so reaching here means success.
+    return true;
 }
 
 async function build() {
+    // build does not need git itself, but it should still fail with a clear message
+    // when running from a non-git checkout.
+    await ensureGitRepo();
+
     const opts = { cwd: IRISCORD_SRC_DIR };
 
     const command = isFlatpak ? "flatpak-spawn" : "node";
@@ -86,5 +144,6 @@ async function build() {
 
 ipcMain.handle(IpcEvents.GET_REPO, serializeErrors(getRepo));
 ipcMain.handle(IpcEvents.GET_UPDATES, serializeErrors(calculateGitChanges));
-ipcMain.handle(IpcEvents.UPDATE, serializeErrors(pull));
+ipcMain.handle(IpcEvents.UPDATE, serializeErrors(runBootstrapScript));
 ipcMain.handle(IpcEvents.BUILD, serializeErrors(build));
+

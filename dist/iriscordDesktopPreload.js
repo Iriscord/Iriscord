@@ -1,4 +1,4 @@
-// Iriscord 565d82b
+// Iriscord 010b877
 // Standalone: false
 // Platform: win32
 // Updater Disabled: false
