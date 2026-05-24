@@ -96,12 +96,14 @@ async function calculateGitChanges() {
         if (!upstreamRef) upstreamRef = `origin/${branch}`;
 
         // Ensure remote ref exists.
-        // Using rev-parse keeps it consistent across environments.
-        const refExists = (await git("rev-parse", "--verify", upstreamRef)).stdout !== undefined;
-        if (!refExists) {
+        // git/execFile returns stdout+stderr always; rev-parse should exit non-zero when missing.
+        try {
+            await git("rev-parse", "--verify", upstreamRef);
+        } catch {
             const existsOnOrigin = (await safeGit("ls-remote", "origin", branch)).stdout.length > 0;
             if (!existsOnOrigin) return [];
         }
+
 
         const res = await git(
             "log",
