@@ -32,6 +32,9 @@
 
 .PARAMETER Production
     Install to %AppData%\\Iriscord (not dev mode from repo). Used by the web bootstrap script.
+
+.PARAMETER Dev
+    Point Discord at this repo's dist/ folder (not recommended on Windows).
 #>
 
 [CmdletBinding(DefaultParameterSetName = "Menu")]
@@ -48,6 +51,7 @@ param(
     [switch]$Launch,
     [switch]$NoMenu,
     [switch]$Production,
+    [switch]$Dev,
     [ValidateSet("auto", "stable", "canary", "ptb", "")]
     [string]$Branch = ""
 )
@@ -69,6 +73,29 @@ $Brand = @{
 }
 
 $RepoRoot = $PSScriptRoot
+
+function Resolve-IriscordSourceRoot {
+    if (Test-Path (Join-Path $RepoRoot "package.json")) { return $RepoRoot }
+    foreach ($dir in @(
+        $env:IRISCORD_SOURCE_DIR,
+        (Join-Path $env:LOCALAPPDATA "Iriscord\source"),
+        (Join-Path $env:USERPROFILE "Documents\GitHub\Iriscord"),
+        (Join-Path $env:TEMP "Iriscord-Setup")
+    )) {
+        if ($dir -and (Test-Path (Join-Path $dir "package.json"))) { return $dir }
+    }
+    return $RepoRoot
+}
+
+$RepoRoot = Resolve-IriscordSourceRoot
+if (-not (Test-Path (Join-Path $RepoRoot "package.json"))) {
+    throw @"
+Iriscord source not found. Run the bootstrap one-liner first:
+  irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
+Or clone https://github.com/Iriscord/Iriscord and run install.ps1 from that folder.
+"@
+}
+
 $Version = "1.0.0"
 $pkgJson = Join-Path $RepoRoot "package.json"
 if (Test-Path $pkgJson) {
@@ -206,9 +233,16 @@ function Test-Command([string]$Name) {
     [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Test-UseProductionInstall {
+    if ($Dev) { return $false }
+    if ($Production) { return $true }
+    return $true
+}
+
 function Set-IriscordEnv {
     param([switch]$UseProduction)
-    if ($UseProduction -or $Production) {
+    $production = if ($PSBoundParameters.ContainsKey("UseProduction")) { $UseProduction } else { Test-UseProductionInstall }
+    if ($production) {
         $data = Get-IriscordDataDir
         $env:IRISCORD_USER_DATA_DIR = $data
         Remove-Item Env:IRISCORD_DEV_INSTALL -ErrorAction SilentlyContinue
@@ -360,7 +394,12 @@ function Invoke-InstallerCli {
     if (-not (Test-Command "node")) { throw "Node.js is not installed or not on PATH." }
     $runner = Join-Path $RepoRoot "scripts\installDiscord.mjs"
     if (-not (Test-Path $runner)) { throw "Missing scripts\installDiscord.mjs" }
-    Set-IriscordEnv -UseProduction:$Production
+    Set-IriscordEnv
+    if (Test-UseProductionInstall) {
+        Write-Log info "Install mode" "copy build to %AppData%\Iriscord\dist"
+    } else {
+        Write-Log warn "Dev install" "Discord loads from repo (may trigger Windows prompts)"
+    }
     $args = @($runner) + $ExtraArgs
     Write-Log step "Patching Discord..."
     Push-Location $RepoRoot
@@ -590,7 +629,14 @@ function Show-DependenciesMenu {
             "1" {
                 if (-not (Test-Command "pnpm")) { throw "pnpm not found" }
                 Write-Log step "Running pnpm install..."
-                & pnpm install
+                & pnpm install 2>&1 | ForEach-Object {
+                    $line = "$_"
+                    if ($line -match 'The "pnpm" field in package\.json') { return }
+                    if ($line -match "WARN|warn") { Write-Rgb "    $line" $Brand.Warning }
+                    elseif ($line -match "ERROR|error:|failed|ELIFECYCLE") { Write-Rgb "    $line" $Brand.Error }
+                    else { Write-Rgb "    $line" $Brand.Muted }
+                }
+                if ($LASTEXITCODE -ne 0) { throw "pnpm install failed (exit $LASTEXITCODE)" }
             }
             "2" { Invoke-IriscordBuild }
             "0" { return }

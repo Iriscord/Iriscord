@@ -21,7 +21,7 @@ Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Ve
 Open PowerShell and run:
 
 ```powershell
-irm https://github.com/iriscord/iriscord/raw/main/scripts/bootstrap.ps1 | iex
+irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
 ```
 
 This downloads the Iriscord installer and opens the interactive menu. **Node.js** is required ([nodejs.org](https://nodejs.org/)).
