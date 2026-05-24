@@ -89,7 +89,17 @@ function Install-GitSource([string]$Dir) {
                     try { $_.IsReadOnly = $false } catch {}
                 }
 
-                Remove-Item -Path $Dir -Recurse -Force -ErrorAction Stop
+                # Retryable delete: a locked file/dir can still throw even with -Force.
+                # Do a single-item delete loop first, then delete the directory.
+                Get-ChildItem -Path $Dir -Force -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+                    try {
+                        Remove-Item -LiteralPath $_.FullName -Force -Recurse -ErrorAction Stop
+                    } catch {
+                        # Keep going; final Remove-Item below will decide success.
+                    }
+                }
+
+                Remove-Item -LiteralPath $Dir -Recurse -Force -ErrorAction Stop
                 break
             } catch {
                 if ($i -eq $maxAttempts) { throw }
