@@ -1,5 +1,5 @@
 {
-    "name": "@Iriscord/discord-types",
+    "name": "@iriscord/discord-types",
     "author": "Iriscord Contributors",
     "private": false,
     "description": "Typescript definitions for the webpack modules of the Discord Web app",
@@ -7,13 +7,9 @@
     "license": "LGPL-3.0-or-later",
     "types": "src/index.d.ts",
     "type": "module",
-    "exports": {
-        ".": "./src/index.d.ts",
-        "./enums": "./enums/index.ts"
-    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Iriscord/Iriscord.git",
+        "url": "git+https://github.com/Vendicated/Iriscord.git",
         "directory": "packages/discord-types"
     },
     "dependencies": {

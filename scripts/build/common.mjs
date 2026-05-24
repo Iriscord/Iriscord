@@ -35,10 +35,10 @@ import { getPluginTarget } from "../utils.mjs";
 import { builtinModules } from "module";
 
 export function getAppDataUserPluginsDir() {
-    if (process.env.IRISCORD_USER_DATA_DIR || process.env.Iriscord_USER_DATA_DIR) {
-        const dataDir = process.env.IRISCORD_USER_DATA_DIR || process.env.Iriscord_USER_DATA_DIR;
+    if (process.env.IRISCORD_USER_DATA_DIR || process.env.IRISCORD_USER_DATA_DIR) {
+        const dataDir = process.env.IRISCORD_USER_DATA_DIR || process.env.IRISCORD_USER_DATA_DIR;
         const devSrc = join(dataDir, "src", "userplugins");
-        if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
+        if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
             return devSrc;
         }
         return join(dataDir, "userplugins");
@@ -70,7 +70,7 @@ export function getAppDataUserPluginsDir() {
     }
 
     const devSrc = join(dataDir, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
+    if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
         return devSrc;
     }
     return join(dataDir, "userplugins");
@@ -92,7 +92,7 @@ export const IS_STANDALONE = process.argv.includes("--standalone");
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
 
 function resolveGitHash() {
-    const fromEnv = process.env.IRISCORD_HASH || process.env.Iriscord_HASH;
+    const fromEnv = process.env.IRISCORD_HASH || process.env.IRISCORD_HASH;
     if (fromEnv) return fromEnv.trim();
     try {
         return execSync("git rev-parse --short HEAD", {
@@ -351,7 +351,7 @@ export const gitRemotePlugin = {
             namespace: "git-remote", path: args.path
         }));
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
-            let remote = process.env.IRISCORD_REMOTE || process.env.Iriscord_REMOTE;
+            let remote = process.env.IRISCORD_REMOTE || process.env.IRISCORD_REMOTE;
             if (!remote) {
                 try {
                     const res = await promisify(exec)("git remote get-url origin", {
@@ -363,7 +363,7 @@ export const gitRemotePlugin = {
                         .replace("git@github.com:", "")
                         .replace(/.git$/, "");
                 } catch {
-                    remote = "Iriscord/Iriscord";
+                    remote = "iriscord/iriscord";
                 }
             }
 
@@ -483,15 +483,6 @@ export const banImportPlugin = (filter, message) => ({
 export const resolveFromProjectNodeModulesPlugin = {
     name: "resolve-from-project-node-modules",
     setup(build) {
-        build.onResolve({ filter: /^@vencord\/discord-types/ }, args =>
-            build.resolve(args.path.replace("@vencord/discord-types", "@Iriscord/discord-types"), {
-                resolveDir: resolve("."),
-                kind: args.kind,
-                importer: args.importer,
-                pluginData: { redirected: true }
-            })
-        );
-
         const filter = /^[^./]/;
         build.onResolve({ filter }, async args => {
             if (args.pluginData?.redirected) return null;

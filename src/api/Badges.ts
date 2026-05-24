@@ -27,7 +27,7 @@ export const enum BadgePosition {
 
 export interface ProfileBadge {
     /**
-     * Badge id, unused by Iriscord, required by discord
+     * Badge id, unused by iriscord, required by discord
      */
     id: string,
     /** The tooltip to show on hover. Required for image badges */

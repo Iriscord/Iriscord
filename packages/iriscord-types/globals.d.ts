@@ -19,10 +19,10 @@
 declare global {
     export var IriscordNative: typeof import("./IriscordNative").default;
     /** @deprecated Use IriscordNative */
-    export var IriscordNative: typeof import("./IriscordNative").default;
+    export var VencordNative: typeof import("./IriscordNative").default;
     export var Iriscord: typeof import("./Iriscord");
     /** @deprecated Use Iriscord */
-    export var Iriscord: typeof import("./Iriscord");
+    export var Vencord: typeof import("./Iriscord");
 }
 
 export { };

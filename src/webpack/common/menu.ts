@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type * as t from "@Iriscord/discord-types";
+import type * as t from "@iriscord/discord-types";
 import { filters, mapMangledModuleLazy, waitFor } from "@webpack";
 
 export const Menu = {} as t.Menu;

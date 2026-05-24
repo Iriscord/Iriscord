@@ -64,7 +64,7 @@ async function syncSettings() {
             body: "We've noticed you have cloud integrations enabled in another client! Due to limitations, you will " +
                 "need to re-authenticate to continue using them. Click here to go to the settings page to do so!",
             color: "var(--yellow-360)",
-            onClick: () => SettingsRouter.openUserSettings("Iriscord_cloud_panel")
+            onClick: () => SettingsRouter.openUserSettings("iriscord_cloud_panel")
         });
         return;
     }
@@ -183,6 +183,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // FIXME
     if (IS_DISCORD_DESKTOP && Settings.winNativeTitleBar && IS_WINDOWS) {
-        createAndAppendStyle("Iriscord-native-titlebar-style", coreStyleRootNode).textContent = "[class*=titleBar]{display: none!important}";
+        createAndAppendStyle("iriscord-native-titlebar-style", coreStyleRootNode).textContent = "[class*=titleBar]{display: none!important}";
     }
 }, { once: true });

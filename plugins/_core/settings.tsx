@@ -164,56 +164,52 @@ export default definePlugin({
         if (originalLayoutBuilder.key !== "$Root") return layout;
         if (!Array.isArray(layout)) return layout;
 
-        if (layout.some(s => s?.key === "Iriscord_section")) return layout;
-
-        // Remove legacy section from an older client build still in memory
-        const legacySection = layout.findIndex(s => s?.key === "Vencord_section");
-        if (legacySection !== -1) layout.splice(legacySection, 1);
+        if (layout.some(s => s?.key === "iriscord_section")) return layout;
 
         const { buildEntry } = this;
 
-        const IriscordEntries: SettingsLayoutNode[] = [
+        const iriscordEntries: SettingsLayoutNode[] = [
             buildEntry({
-                key: "Iriscord_main",
+                key: "iriscord_main",
                 title: "Iriscord",
                 panelTitle: "Iriscord Settings",
                 Component: IriscordTab,
                 Icon: MainSettingsIcon
             }),
             buildEntry({
-                key: "Iriscord_plugins",
+                key: "iriscord_plugins",
                 title: "Plugins",
                 Component: PluginsTab,
                 Icon: PluginsIcon
             }),
             buildEntry({
-                key: "Iriscord_themes",
+                key: "iriscord_themes",
                 title: "Themes",
                 Component: ThemesTab,
                 Icon: PaintbrushIcon
             }),
             !IS_UPDATER_DISABLED && UpdaterTab && buildEntry({
-                key: "Iriscord_updater",
+                key: "iriscord_updater",
                 title: "Updater",
                 panelTitle: "Iriscord Updater",
                 Component: UpdaterTab,
                 Icon: UpdaterIcon
             }),
             buildEntry({
-                key: "Iriscord_cloud",
+                key: "iriscord_cloud",
                 title: "Cloud",
                 panelTitle: "Iriscord Cloud",
                 Component: CloudTab,
                 Icon: CloudIcon
             }),
             buildEntry({
-                key: "Iriscord_backup_restore",
+                key: "iriscord_backup_restore",
                 title: "Backup & Restore",
                 Component: BackupAndRestoreTab,
                 Icon: BackupRestoreIcon
             }),
             !IS_STANDALONE && PatchHelperTab && buildEntry({
-                key: "Iriscord_patch_helper",
+                key: "iriscord_patch_helper",
                 title: "Patch Helper",
                 Component: PatchHelperTab,
                 Icon: PatchHelperIcon
@@ -225,7 +221,7 @@ export default definePlugin({
                 if (Object.values(FallbackSectionTypes).includes(section)) return null;
 
                 return buildEntry({
-                    key: `Iriscord_deprecated_custom_${section}`,
+                    key: `iriscord_deprecated_custom_${section}`,
                     title: label,
                     Component: element,
                     Icon: section === "Vesktop" ? VesktopSettingsIcon : PlaceholderIcon
@@ -233,11 +229,11 @@ export default definePlugin({
             })
         ].filter(isTruthy);
 
-        const IriscordSection: SettingsLayoutNode = {
-            key: "Iriscord_section",
+        const iriscordSection: SettingsLayoutNode = {
+            key: "iriscord_section",
             type: LayoutTypes.SECTION,
             useTitle: () => "Iriscord Settings",
-            buildLayout: () => IriscordEntries
+            buildLayout: () => iriscordEntries
         };
 
         const { settingsLocation } = settings.store;
@@ -260,7 +256,7 @@ export default definePlugin({
             idx += 1;
         }
 
-        layout.splice(idx, 0, IriscordSection);
+        layout.splice(idx, 0, iriscordSection);
 
         return layout;
     },

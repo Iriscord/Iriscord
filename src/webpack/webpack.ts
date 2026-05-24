@@ -22,8 +22,8 @@ import { LazyComponent } from "@utils/lazyReact";
 import { Logger } from "@utils/Logger";
 import { canonicalizeMatch } from "@utils/patches";
 import { escapeRegExp } from "@utils/text";
-import type { FluxStore } from "@Iriscord/discord-types";
-import type { ModuleExports, ModuleFactory, WebpackRequire } from "@Iriscord/discord-types/webpack";
+import type { FluxStore } from "@iriscord/discord-types";
+import type { ModuleExports, ModuleFactory, WebpackRequire } from "@iriscord/discord-types/webpack";
 
 import type { AnyModuleFactory, AnyWebpackRequire } from "./types";
 
@@ -71,7 +71,7 @@ export const filters = {
             return stringMatches(Function.prototype.toString.call(m), parsedCode);
         };
 
-        filter.$$IriscordProps = [...code];
+        filter.$$iriscordProps = [...code];
         return filter;
     },
     byStoreName: (name: StoreNameFilter): FilterFn => m =>
@@ -93,7 +93,7 @@ export const filters = {
             return false;
         };
 
-        filter.$$IriscordProps = [...code];
+        filter.$$iriscordProps = [...code];
         return filter;
     },
 

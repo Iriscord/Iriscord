@@ -2,7 +2,7 @@
 
 Iriscord is a community project and welcomes any kind of contribution from anyone!
 
-We have development documentation for new contributors, which can be found at <https://docs.Iriscord.dev>.
+We have development documentation for new contributors, which can be found at <https://docs.iriscord.dev>.
 
 All contributions should be made in accordance with our [Code of Conduct](./CODE_OF_CONDUCT.md).
 

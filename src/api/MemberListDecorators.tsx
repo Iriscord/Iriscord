@@ -17,7 +17,7 @@
 */
 
 import ErrorBoundary from "@components/ErrorBoundary";
-import { Channel, User } from "@Iriscord/discord-types";
+import { Channel, User } from "@iriscord/discord-types";
 import { JSX } from "react";
 
 interface DecoratorProps {

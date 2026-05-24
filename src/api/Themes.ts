@@ -18,10 +18,10 @@
 
 import { Settings, SettingsStore } from "@api/Settings";
 import { createAndAppendStyle } from "@utils/css";
-import { ThemeStore } from "@Iriscord/discord-types";
+import { ThemeStore } from "@iriscord/discord-types";
 import { PopoutWindowStore } from "@webpack/common";
 
-import { userStyleRootNode, IriscordRootNode } from "./Styles";
+import { userStyleRootNode, iriscordRootNode } from "./Styles";
 
 let style: HTMLStyleElement;
 let themesStyle: HTMLStyleElement;
@@ -29,7 +29,7 @@ let themesStyle: HTMLStyleElement;
 async function toggle(isEnabled: boolean) {
     if (!style) {
         if (isEnabled) {
-            style = createAndAppendStyle("Iriscord-custom-css", userStyleRootNode);
+            style = createAndAppendStyle("iriscord-custom-css", userStyleRootNode);
             IriscordNative.quickCss.addChangeListener(css => {
                 style.textContent = css;
                 // At the time of writing this, changing textContent resets the disabled state
@@ -43,7 +43,7 @@ async function toggle(isEnabled: boolean) {
 }
 
 async function initThemes() {
-    themesStyle ??= createAndAppendStyle("Iriscord-themes", userStyleRootNode);
+    themesStyle ??= createAndAppendStyle("iriscord-themes", userStyleRootNode);
 
     const { themeLinks, enabledThemes } = Settings;
 
@@ -73,7 +73,7 @@ async function initThemes() {
             links.push(URL.createObjectURL(blob));
         }
     } else {
-        const localThemes = enabledThemes.map(theme => `Iriscord:///themes/${theme}?v=${Date.now()}`);
+        const localThemes = enabledThemes.map(theme => `iriscord:///themes/${theme}?v=${Date.now()}`);
         links.push(...localThemes);
     }
 
@@ -88,9 +88,9 @@ function applyToPopout(popoutWindow: Window | undefined, key: string) {
 
     const doc = popoutWindow.document;
 
-    doc.querySelector("Iriscord-root")?.remove();
+    doc.querySelector("iriscord-root")?.remove();
 
-    doc.documentElement.appendChild(IriscordRootNode.cloneNode(true));
+    doc.documentElement.appendChild(iriscordRootNode.cloneNode(true));
 }
 
 function updatePopoutWindows() {

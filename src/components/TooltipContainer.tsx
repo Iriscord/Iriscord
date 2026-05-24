@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { TooltipProps } from "@Iriscord/discord-types";
+import { TooltipProps } from "@iriscord/discord-types";
 import { Tooltip } from "@webpack/common";
 
 export function TooltipContainer({ children, ...props }: Omit<TooltipProps, "children"> & { children: React.ReactNode; }) {

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { Tooltip } from "@Iriscord/discord-types";
+import { Tooltip } from "@iriscord/discord-types";
 
 const NOOP = () => { };
 

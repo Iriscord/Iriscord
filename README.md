@@ -2,13 +2,14 @@
 
 **A modern Discord client mod — powered by Iris**
 
-Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Iriscord/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
+Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Vendicated/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
 
 ## Features
 
 - Easy to install (same injection model as Iriscord)
+- 100+ built-in plugins from the Iriscord tree, plus Iriscord-exclusive plugins under `src/plugins/`
 - Iriscord plugin compatibility via `window.Iriscord` and `IriscordNative` aliases
-- Custom CSS and themes 
+- Custom CSS and themes with a purple/black **Iris** visual language
 - Privacy-friendly defaults (blocks Discord analytics & crash reporting)
 - Cross-platform: Windows, Linux, macOS, and browser builds
 - Optional transparency, acrylic/Mica (Windows), and vibrancy (macOS)
@@ -20,10 +21,10 @@ Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Ir
 Open PowerShell and run:
 
 ```powershell
-irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
+irm https://github.com/iriscord/iriscord/raw/main/scripts/bootstrap.ps1 | iex
 ```
 
-This downloads the full Iriscord source to `%LocalAppData%\Iriscord\source` and opens the interactive installer. **Node.js** and **pnpm** are required ([nodejs.org](https://nodejs.org/)). Use menu option **9** to run `pnpm install`, then **1** to install (which builds and patches Discord).
+This downloads the Iriscord installer and opens the interactive menu. **Node.js** is required ([nodejs.org](https://nodejs.org/)).
 
 ### From source (developers)
 

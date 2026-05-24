@@ -12,5 +12,3 @@ export { gitHash, gitRemote };
 import { PRODUCT_NAME, PROJECT_HOMEPAGE } from "./branding";
 
 export const IRISCORD_USER_AGENT = `${PRODUCT_NAME}/${gitHash}${gitRemote ? ` (${PROJECT_HOMEPAGE})` : ""}`;
-/** @deprecated Use IRISCORD_USER_AGENT */
-export const Iriscord_USER_AGENT = IRISCORD_USER_AGENT;

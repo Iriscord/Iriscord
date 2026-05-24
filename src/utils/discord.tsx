@@ -17,7 +17,7 @@
 */
 
 import type { MessageObject } from "@api/MessageEvents";
-import type { Channel, CloudUpload, Guild, GuildFeatures, MediaModalItem, MediaModalProps, Message, User } from "@Iriscord/discord-types";
+import type { Channel, CloudUpload, Guild, GuildFeatures, MediaModalItem, MediaModalProps, Message, User } from "@iriscord/discord-types";
 import { ChannelActionCreators, ChannelStore, ComponentDispatch, Constants, FluxDispatcher, GuildStore, i18n, InviteActions, MessageActions, openMediaModal, RestAPI, SelectedChannelStore, SelectedGuildStore, Toasts, UserProfileActions, UserProfileStore, UserSettingsActionCreators, UserUtils } from "@webpack/common";
 import { Except } from "type-fest";
 

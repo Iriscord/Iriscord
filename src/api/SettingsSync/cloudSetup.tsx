@@ -20,7 +20,7 @@ export async function checkCloudUrlCsp() {
     if (IS_WEB) return true;
 
     const { host } = getCloudUrl();
-    if (host === "api.Iriscord.dev") return true;
+    if (host === "api.iriscord.dev") return true;
 
     if (await IriscordNative.csp.isDomainAllowed(Settings.cloud.url, ["connect-src"])) {
         return true;

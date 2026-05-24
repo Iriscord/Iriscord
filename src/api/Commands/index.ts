@@ -18,7 +18,7 @@
 
 import { Logger } from "@utils/Logger";
 import { makeCodeblock } from "@utils/text";
-import { CommandArgument, CommandContext, CommandOption } from "@Iriscord/discord-types";
+import { CommandArgument, CommandContext, CommandOption } from "@iriscord/discord-types";
 
 import { sendBotMessage } from "./commandHelpers";
 import { ApplicationCommandInputType, ApplicationCommandOptionType, ApplicationCommandType, IriscordCommand } from "./types";

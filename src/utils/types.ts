@@ -24,7 +24,7 @@ import { MessageAccessoryFactory } from "@api/MessageAccessories";
 import { MessageDecorationFactory } from "@api/MessageDecorations";
 import { MessageClickListener, MessageEditListener, MessageSendListener } from "@api/MessageEvents";
 import { MessagePopoverButtonData } from "@api/MessagePopover";
-import { Command, FluxEvents } from "@Iriscord/discord-types";
+import { Command, FluxEvents } from "@iriscord/discord-types";
 import { ReactNode } from "react";
 import { LiteralUnion } from "type-fest";
 

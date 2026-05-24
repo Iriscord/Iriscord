@@ -28,8 +28,8 @@ import { installExt } from "./utils/extensions";
 
 if (IS_VESKTOP || !IS_VANILLA) {
     app.whenReady().then(() => {
-        protocol.handle("Iriscord", ({ url: unsafeUrl }) => {
-            let url = decodeURI(unsafeUrl).slice("Iriscord://".length).replace(/\?v=\d+$/, "");
+        protocol.handle("iriscord", ({ url: unsafeUrl }) => {
+            let url = decodeURI(unsafeUrl).slice("iriscord://".length).replace(/\?v=\d+$/, "");
 
             if (url.endsWith("/")) url = url.slice(0, -1);
 

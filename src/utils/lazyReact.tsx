@@ -10,7 +10,7 @@ import { makeLazy } from "./lazy";
 
 const NoopComponent = () => null;
 
-export type LazyComponentWrapper<ComponentType> = ComponentType & { $$IriscordGetWrappedComponent(): ComponentType; };
+export type LazyComponentWrapper<ComponentType> = ComponentType & { $$iriscordGetWrappedComponent(): ComponentType; };
 
 /**
  * A lazy component. The factory method is called on first render.
@@ -25,7 +25,7 @@ export function LazyComponent<T extends object = any>(factory: () => ComponentTy
         return <Component {...props} />;
     };
 
-    LazyComponent.$$IriscordGetWrappedComponent = get;
+    LazyComponent.$$iriscordGetWrappedComponent = get;
 
     return LazyComponent;
 }

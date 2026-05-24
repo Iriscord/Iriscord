@@ -31,32 +31,32 @@ export interface Style {
     dom: HTMLStyleElement | null;
 }
 
-export const styleMap = (window.IriscordStyles ??= window.IriscordStyles ?? new Map());
-window.IriscordStyles ??= window.IriscordStyles;
+export const styleMap = (window.IriscordStyles ??= new Map());
+window.VencordStyles ??= window.IriscordStyles;
 
-export const IriscordRootNode = document.createElement("Iriscord-root");
+export const iriscordRootNode = document.createElement("iriscord-root");
 /**
  * Houses all Iriscord core styles. This includes all imported css files
  */
-export const coreStyleRootNode = document.createElement("Iriscord-styles");
+export const coreStyleRootNode = document.createElement("iriscord-styles");
 /**
  * Houses all plugin specific managed styles
  */
-export const managedStyleRootNode = document.createElement("Iriscord-managed-styles");
+export const managedStyleRootNode = document.createElement("iriscord-managed-styles");
 /**
  * Houses the user's themes and quick css
  */
-export const userStyleRootNode = document.createElement("Iriscord-user-styles");
+export const userStyleRootNode = document.createElement("iriscord-user-styles");
 
-IriscordRootNode.style.display = "none";
-IriscordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
+iriscordRootNode.style.display = "none";
+iriscordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
 
 export function initStyles() {
-    const osValuesNode = createAndAppendStyle("Iriscord-os-theme-values", coreStyleRootNode);
-    createAndAppendStyle("Iriscord-text", coreStyleRootNode).textContent = generateTextCss();
-    const rendererCssNode = createAndAppendStyle("Iriscord-css-core", coreStyleRootNode);
+    const osValuesNode = createAndAppendStyle("iriscord-os-theme-values", coreStyleRootNode);
+    createAndAppendStyle("iriscord-text", coreStyleRootNode).textContent = generateTextCss();
+    const rendererCssNode = createAndAppendStyle("iriscord-css-core", coreStyleRootNode);
     const vesktopCssNode = IS_VESKTOP ? createAndAppendStyle("vesktop-css-core", coreStyleRootNode) : null;
-    createAndAppendStyle("Iriscord-margins", coreStyleRootNode).textContent = generateMarginCss();
+    createAndAppendStyle("iriscord-margins", coreStyleRootNode).textContent = generateMarginCss();
 
     IriscordNative.native.getRendererCss().then(css => rendererCssNode.textContent = css);
     if (IS_DEV) {
@@ -82,7 +82,7 @@ export function initStyles() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.documentElement.append(IriscordRootNode);
+    document.documentElement.append(iriscordRootNode);
 }, { once: true });
 
 export function requireStyle(name: string) {
@@ -109,7 +109,7 @@ export function enableStyle(name: string) {
 
     if (!style.dom) {
         style.dom = document.createElement("style");
-        style.dom.dataset.IriscordName = style.name;
+        style.dom.dataset.iriscordName = style.name;
     }
     compileStyle(style);
 

@@ -108,7 +108,7 @@ const buildConfigs = [
             js: readFileSync("browser/userscript.meta.js", "utf-8").replace("%version%", `${VERSION}.${new Date().getTime()}`)
         },
         footer: {
-            js: "Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});"
+            js: "Object.defineProperty(unsafeWindow,'Iriscord',{get:()=>Iriscord});Object.defineProperty(unsafeWindow,'Vencord',{get:()=>Iriscord});"
         }
     }
 ];

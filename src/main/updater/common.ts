@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const Iriscord_FILES = [
+export const IRISCORD_FILES = [
     IS_DISCORD_DESKTOP ? "patcher.js" : "iriscordDesktopMain.js",
     IS_DISCORD_DESKTOP ? "preload.js" : "iriscordDesktopPreload.js",
     IS_DISCORD_DESKTOP ? "renderer.js" : "iriscordDesktopRenderer.js",

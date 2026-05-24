@@ -35,8 +35,8 @@ const unconfigurable = ["arguments", "caller", "prototype"];
 
 const handler: ProxyHandler<any> = {};
 
-export const SYM_LAZY_GET = Symbol.for("Iriscord.lazy.get");
-export const SYM_LAZY_CACHED = Symbol.for("Iriscord.lazy.cached");
+export const SYM_LAZY_GET = Symbol.for("iriscord.lazy.get");
+export const SYM_LAZY_CACHED = Symbol.for("iriscord.lazy.cached");
 
 for (const method of [
     "apply",

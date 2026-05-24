@@ -55,7 +55,7 @@ export const CspPolicies: PolicyMap = {
     "api.github.com": ConnectSrc, // used for updating Iriscord itself
     "ws.audioscrobbler.com": ConnectSrc, // Last.fm API
     "translate-pa.googleapis.com": ConnectSrc, // Google Translate API
-    "*.iriscord.dev": ImageSrc, // VenCloud (api.Iriscord.dev) and Badges (badges.iriscord.dev)
+    "*.iriscord.dev": ImageSrc, // VenCloud (api.iriscord.dev) and Badges (badges.iriscord.dev)
     "manti.vendicated.dev": ImageSrc, // ReviewDB API
     "decor.fieryflames.dev": ConnectSrc, // Decor API
     "ugc.decor.fieryflames.dev": ImageSrc, // Decor CDN
@@ -110,7 +110,7 @@ const patchCsp = (headers: PolicyMap) => {
         pushDirective("script-src", "'unsafe-inline'", "'unsafe-eval'");
 
         for (const directive of ["style-src", "connect-src", "img-src", "font-src", "media-src", "worker-src"]) {
-            pushDirective(directive, "blob:", "data:", "Iriscord:", "vesktop:");
+            pushDirective(directive, "blob:", "data:", "iriscord:", "vesktop:");
         }
 
         for (const [host, directives] of Object.entries(NativeSettings.store.customCspRules)) {

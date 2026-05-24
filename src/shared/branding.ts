@@ -12,17 +12,16 @@ export const PRODUCT_SHORT_NAME = "Iris";
 /** Config / data directory name (sibling to Discord userData) */
 export const DATA_DIR_NAME = "Iriscord";
 
-/** Legacy data directory names — used for one-time migration */
+/** Legacy Iriscord data directory name — used for one-time migration */
 export const LEGACY_DATA_DIR_NAME = "Iriscord";
+
 export const LEGACY_DATA_DIR_ALT_NAME = "IriscordData";
-/** Upstream Iriscord install folder */
-export const LEGACY_Iriscord_DATA_DIR_NAME = "Iriscord";
 
 /** Default cloud API (override via settings) */
 export const DEFAULT_CLOUD_API_URL = "https://api.iriscord.dev/";
 
 /** Project URLs — update when publishing your fork */
-export const PROJECT_HOMEPAGE = "https://github.com/Iriscord/Iriscord";
+export const PROJECT_HOMEPAGE = "https://github.com/iriscord/iriscord";
 export const PROJECT_DOWNLOAD = "https://iriscord.dev/download";
 export const PROJECT_PLUGINS = "https://iriscord.dev/plugins";
 export const PROJECT_DISCORD_INVITE = "https://discord.gg/iriscord";

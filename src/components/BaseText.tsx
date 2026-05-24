@@ -8,7 +8,7 @@ import "./BaseText.css";
 
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
-import type { Text as DiscordText } from "@Iriscord/discord-types";
+import type { Text as DiscordText } from "@iriscord/discord-types";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 const textCls = classNameFactory("vc-text-");

@@ -17,7 +17,7 @@
 */
 
 import { Logger } from "@utils/Logger";
-import type { Channel, CloudUpload, CustomEmoji, Message } from "@Iriscord/discord-types";
+import type { Channel, CloudUpload, CustomEmoji, Message } from "@iriscord/discord-types";
 import { MessageStore } from "@webpack/common";
 import type { Promisable } from "type-fest";
 

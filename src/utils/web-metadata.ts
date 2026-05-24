@@ -13,7 +13,7 @@ export const metaReady = new Promise<void>(res => resolveMetaReady = res);
 
 if (IS_EXTENSION) {
     const listener = (e: MessageEvent) => {
-        if (e.data?.type === "Iriscord:meta") {
+        if (e.data?.type === "iriscord:meta") {
             ({ EXTENSION_BASE_URL, EXTENSION_VERSION, RENDERER_CSS_URL } = e.data.meta);
             window.removeEventListener("message", listener);
             resolveMetaReady();

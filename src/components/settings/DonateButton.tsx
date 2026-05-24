@@ -17,7 +17,7 @@
 */
 
 import { Heart } from "@components/Heart";
-import { ButtonProps } from "@Iriscord/discord-types";
+import { ButtonProps } from "@iriscord/discord-types";
 import { Button } from "@webpack/common";
 
 export default function DonateButton({

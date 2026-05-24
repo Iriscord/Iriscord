@@ -6,7 +6,7 @@ document.addEventListener(
     "DOMContentLoaded",
     () => {
         window.postMessage({
-            type: "Iriscord:meta",
+            type: "iriscord:meta",
             meta: {
                 EXTENSION_VERSION: browser.runtime.getManifest().version,
                 EXTENSION_BASE_URL: browser.runtime.getURL(""),

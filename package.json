@@ -3,13 +3,13 @@
     "private": "true",
     "version": "1.0.0",
     "description": "A modern Discord client mod — powered by Iris",
-    "homepage": "https://github.com/Iriscord/Iriscord#readme",
+    "homepage": "https://github.com/iriscord/iriscord#readme",
     "bugs": {
-        "url": "https://github.com/Iriscord/Iriscord/issues"
+        "url": "https://github.com/iriscord/iriscord/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Iriscord/Iriscord.git"
+        "url": "git+https://github.com/iriscord/iriscord.git"
     },
     "license": "GPL-3.0-or-later",
     "author": "Iriscord Contributors",
@@ -54,7 +54,7 @@
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
         "@types/yazl": "^3.3.1",
-        "@Iriscord/discord-types": "link:packages/discord-types",
+        "@iriscord/discord-types": "link:packages/discord-types",
         "diff": "^9.0.0",
         "esbuild": "^0.28.0",
         "eslint": "10.2.0",

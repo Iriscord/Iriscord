@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import * as t from "@Iriscord/discord-types";
+import * as t from "@iriscord/discord-types";
 import { filters, findByCodeLazy, findExportedComponentLazy, mapMangledModuleLazy } from "@webpack";
 
 export const Modal: t.Modal = findExportedComponentLazy("Modal");

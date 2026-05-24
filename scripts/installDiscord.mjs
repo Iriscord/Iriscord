@@ -49,13 +49,13 @@ function log(level, msg) {
 
 function resolveDataDir() {
     if (process.env.IRISCORD_USER_DATA_DIR) return resolve(process.env.IRISCORD_USER_DATA_DIR);
-    if (process.env.Iriscord_USER_DATA_DIR) return resolve(process.env.Iriscord_USER_DATA_DIR);
+    if (process.env.IRISCORD_USER_DATA_DIR) return resolve(process.env.IRISCORD_USER_DATA_DIR);
 
     const base = process.env.DISCORD_USER_DATA_DIR
         ? join(process.env.DISCORD_USER_DATA_DIR, "..")
         : join(process.env.APPDATA || join(homedir(), "AppData", "Roaming"));
 
-    for (const name of [DATA_DIR_NAME, "Iriscord", "IriscordData", "Iriscord"]) {
+    for (const name of [DATA_DIR_NAME, "Iriscord", "IriscordData"]) {
         const p = join(base, name);
         if (existsSync(p)) return p;
     }
@@ -63,7 +63,7 @@ function resolveDataDir() {
 }
 
 const isDevInstall = process.env.IRISCORD_DEV_INSTALL === "1"
-    || process.env.Iriscord_DEV_INSTALL === "1";
+    || process.env.IRISCORD_DEV_INSTALL === "1";
 
 const dataDir = resolveDataDir();
 const filesDir = join(dataDir, "dist");

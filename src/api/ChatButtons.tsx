@@ -10,7 +10,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Logger } from "@utils/Logger";
 import { classes } from "@utils/misc";
 import { IconComponent } from "@utils/types";
-import { Channel } from "@Iriscord/discord-types";
+import { Channel } from "@iriscord/discord-types";
 import { findCssClassesLazy } from "@webpack";
 import { Clickable, Menu, Tooltip } from "@webpack/common";
 import { HTMLProps, JSX, MouseEventHandler, ReactNode } from "react";
@@ -115,7 +115,7 @@ function IriscordChatBarButtons(props: ChatBarProps) {
 export function _injectButtons(buttons: ReactNode[], props: ChatBarProps) {
     if (props.disabled || buttons.length === 0) return;
 
-    buttons.unshift(<IriscordChatBarButtons key="Iriscord-chat-buttons" {...props} />);
+    buttons.unshift(<IriscordChatBarButtons key="iriscord-chat-buttons" {...props} />);
 }
 
 /**
@@ -172,7 +172,7 @@ addContextMenuPatch("textarea-context", (children, args) => {
     if (idx === -1) return;
 
     group.splice(idx, 0,
-        <Menu.MenuItem id="vc-chat-buttons" key="Iriscord-chat-buttons" label="Iriscord Buttons">
+        <Menu.MenuItem id="vc-chat-buttons" key="iriscord-chat-buttons" label="Iriscord Buttons">
             {buttons.map(([id]) => (
                 <Menu.MenuCheckboxItem
                     label={id}

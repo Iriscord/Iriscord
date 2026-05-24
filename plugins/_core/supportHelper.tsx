@@ -24,7 +24,7 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Flex } from "@components/Flex";
 import { Link } from "@components/Link";
 import { openSettingsTabModal, UpdaterTab } from "@components/settings";
-import { CONTRIB_ROLE_ID, Devs, DONOR_ROLE_ID, KNOWN_ISSUES_CHANNEL_ID, REGULAR_ROLE_ID, SUPPORT_CATEGORY_ID, SUPPORT_CHANNEL_ID, VENBOT_USER_ID, Iriscord_GUILD_ID } from "@utils/constants";
+import { CONTRIB_ROLE_ID, Devs, DONOR_ROLE_ID, KNOWN_ISSUES_CHANNEL_ID, REGULAR_ROLE_ID, SUPPORT_CATEGORY_ID, SUPPORT_CHANNEL_ID, VENBOT_USER_ID, IRISCORD_GUILD_ID } from "@utils/constants";
 import { sendMessage } from "@utils/discord";
 import { Logger } from "@utils/Logger";
 import { Margins } from "@utils/margins";
@@ -34,7 +34,7 @@ import { onlyOnce } from "@utils/onlyOnce";
 import { makeCodeblock } from "@utils/text";
 import definePlugin from "@utils/types";
 import { checkForUpdates, isOutdated, update } from "@utils/updater";
-import { Channel, RenderModalProps } from "@Iriscord/discord-types";
+import { Channel, RenderModalProps } from "@iriscord/discord-types";
 import { Button, ChannelStore, ConfirmModal, Forms, GuildMemberStore, openModal, Parser, PermissionsBits, PermissionStore, RelationshipStore, showToast, Text, Toasts, UserStore } from "@webpack/common";
 import { JSX } from "react";
 
@@ -86,7 +86,7 @@ async function generateDebugInfoMessage() {
 
     const info = {
         Iriscord:
-            `v${VERSION} • [${gitHash}](<https://github.com/Iriscord/Iriscord/commit/${gitHash}>)` +
+            `v${VERSION} • [${gitHash}](<https://github.com/Vendicated/Iriscord/commit/${gitHash}>)` +
             `${SettingsPlugin.additionalInfo} - ${Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(BUILD_TIMESTAMP)}`,
         Client: `${RELEASE_CHANNEL} ~ ${client}`,
         Platform: navigator.platform
@@ -154,8 +154,8 @@ function DevBuildConfirmModal(props: RenderModalProps) {
                 <Forms.FormText>You are using a custom build of Iriscord, which we do not provide support for!</Forms.FormText>
 
                 <Forms.FormText className={Margins.top8}>
-                    We only provide support for <Link href="https://Iriscord.dev/download">official builds</Link>.
-                    Either <Link href="https://Iriscord.dev/download">switch to an official build</Link> or figure your issue out yourself.
+                    We only provide support for <Link href="https://iriscord.dev/download">official builds</Link>.
+                    Either <Link href="https://iriscord.dev/download">switch to an official build</Link> or figure your issue out yourself.
                 </Forms.FormText>
 
                 <Text variant="text-md/bold" className={Margins.top8}>You will be banned from receiving support if you ignore this rule.</Text>
@@ -183,13 +183,13 @@ export default definePlugin({
 
     commands: [
         {
-            name: "Iriscord-debug",
+            name: "iriscord-debug",
             description: "Send Iriscord debug info",
             predicate: ctx => isPluginDev(UserStore.getCurrentUser()?.id) || isSupportAllowedChannel(ctx.channel),
             execute: async () => ({ content: await generateDebugInfoMessage() })
         },
         {
-            name: "Iriscord-plugins",
+            name: "iriscord-plugins",
             description: "Send Iriscord plugin list",
             predicate: ctx => isPluginDev(UserStore.getCurrentUser()?.id) || isSupportAllowedChannel(ctx.channel),
             execute: () => ({ content: generatePluginList() })
@@ -233,7 +233,7 @@ export default definePlugin({
                 }
             }
 
-            const roles = GuildMemberStore.getSelfMember(Iriscord_GUILD_ID)?.roles;
+            const roles = GuildMemberStore.getSelfMember(IRISCORD_GUILD_ID)?.roles;
             if (!roles || TrustedRolesIds.some(id => roles.includes(id))) return;
 
             if (!IS_WEB && IS_UPDATER_DISABLED) {
@@ -247,7 +247,7 @@ export default definePlugin({
                         <div>
                             <Forms.FormText>You are using an externally updated Iriscord version, which we do not provide support for!</Forms.FormText>
                             <Forms.FormText className={Margins.top8}>
-                                Please either switch to an <Link href="https://Iriscord.dev/download">officially supported version of Iriscord</Link>, or
+                                Please either switch to an <Link href="https://iriscord.dev/download">officially supported version of Iriscord</Link>, or
                                 contact your package maintainer for support instead.
                             </Forms.FormText>
                         </div>
@@ -297,21 +297,21 @@ export default definePlugin({
         }
 
         if (props.channel.parent_id === SUPPORT_CATEGORY_ID && PermissionStore.can(PermissionsBits.SEND_MESSAGES, props.channel)) {
-            if (props.message.content.includes("/Iriscord-debug") || props.message.content.includes("/Iriscord-plugins")) {
+            if (props.message.content.includes("/iriscord-debug") || props.message.content.includes("/iriscord-plugins")) {
                 buttons.push(
                     <Button
                         key="vc-dbg"
                         color={Button.Colors.PRIMARY}
                         onClick={async () => sendMessage(props.channel.id, { content: await generateDebugInfoMessage() })}
                     >
-                        Run /Iriscord-debug
+                        Run /iriscord-debug
                     </Button>,
                     <Button
                         key="vc-plg-list"
                         color={Button.Colors.PRIMARY}
                         onClick={async () => sendMessage(props.channel.id, { content: generatePluginList() })}
                     >
-                        Run /Iriscord-plugins
+                        Run /iriscord-plugins
                     </Button>
                 );
             }

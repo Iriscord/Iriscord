@@ -3,9 +3,9 @@
 Typings for Iriscord's api, published to npm
 
 ```sh
-npm i @Iriscord/types
+npm i @iriscord/types
 
-yarn add @Iriscord/types
+yarn add @iriscord/types
 
-pnpm add @Iriscord/types
+pnpm add @iriscord/types
 ```

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import * as t from "@Iriscord/discord-types";
+import * as t from "@iriscord/discord-types";
 import { findByCodeLazy, findByPropsLazy } from "@webpack";
 
 import { waitForStore } from "./internal";

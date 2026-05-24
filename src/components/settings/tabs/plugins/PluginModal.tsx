@@ -30,7 +30,7 @@ import { proxyLazy } from "@utils/lazy";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { OptionType, Plugin, PluginTag } from "@utils/types";
-import { RenderModalProps, User } from "@Iriscord/discord-types";
+import { RenderModalProps, User } from "@iriscord/discord-types";
 import { findCssClassesLazy } from "@webpack";
 import { Clickable, FluxDispatcher, Forms, Modal,openModal, React, Text, Tooltip, useEffect, useMemo, UserStore, UserSummaryItem, UserUtils, useState } from "@webpack/common";
 import { Constructor } from "type-fest";

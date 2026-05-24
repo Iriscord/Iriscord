@@ -17,10 +17,5 @@
 */
 
 export const IriscordFragment = /* #__PURE__*/ Symbol.for("react.fragment");
-/** @deprecated */
-export const Fragment = IriscordFragment;
-
 export let IriscordCreateElement =
     (...args) => (IriscordCreateElement = Iriscord.Webpack.Common.React.createElement)(...args);
-/** @deprecated */
-export let r = IriscordCreateElement;

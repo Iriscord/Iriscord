@@ -93,12 +93,12 @@ async function runReporter() {
                     result = Webpack[method](...args);
                 }
 
-                if (result == null || (result.$$IriscordGetWrappedComponent != null && result.$$IriscordGetWrappedComponent() == null)) throw new Error("Webpack Find Fail");
+                if (result == null || (result.$$iriscordGetWrappedComponent != null && result.$$iriscordGetWrappedComponent() == null)) throw new Error("Webpack Find Fail");
             } catch (e) {
                 let logMessage = searchType;
                 if (method === "find" || method === "proxyLazyWebpack" || method === "LazyComponentWebpack") {
-                    if (args[0].$$IriscordProps != null) {
-                        logMessage += `(${args[0].$$IriscordProps.map(arg => `"${arg}"`).join(", ")})`;
+                    if (args[0].$$iriscordProps != null) {
+                        logMessage += `(${args[0].$$iriscordProps.map(arg => `"${arg}"`).join(", ")})`;
                     } else {
                         logMessage += `(${args[0].toString().slice(0, 147)}...)`;
                     }

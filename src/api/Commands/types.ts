@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { Command } from "@Iriscord/discord-types";
-export { ApplicationCommandInputType, ApplicationCommandOptionType, ApplicationCommandType } from "@Iriscord/discord-types/enums";
+import { Command } from "@iriscord/discord-types";
+export { ApplicationCommandInputType, ApplicationCommandOptionType, ApplicationCommandType } from "@iriscord/discord-types/enums";
 
 export interface IriscordCommand extends Command {
     isIriscordCommand?: boolean;

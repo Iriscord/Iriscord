@@ -20,11 +20,11 @@ import { existsSync, mkdirSync } from "fs";
 import { app } from "electron";
 import { join } from "path";
 
-import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME, LEGACY_Iriscord_DATA_DIR_NAME } from "../../shared/branding";
+import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME } from "../../shared/branding";
 
 function resolveDataDir(): string {
     if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
-    if (process.env.Iriscord_USER_DATA_DIR) return process.env.Iriscord_USER_DATA_DIR;
+    if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
 
     const base = process.env.DISCORD_USER_DATA_DIR
         ? join(process.env.DISCORD_USER_DATA_DIR, "..")
@@ -40,9 +40,6 @@ function resolveDataDir(): string {
     const legacyAlt = join(base, LEGACY_DATA_DIR_ALT_NAME);
     if (existsSync(legacyAlt)) return legacyAlt;
 
-    const legacyIriscord = join(base, LEGACY_Iriscord_DATA_DIR_NAME);
-    if (existsSync(legacyIriscord)) return legacyIriscord;
-
     return iriscordDir;
 }
 
@@ -53,7 +50,7 @@ export const THEMES_DIR = join(DATA_DIR, "themes");
 /** Where to place plugins for manual install (see userplugins/README.md) */
 export const USER_PLUGINS_DIR = (() => {
     const devSrc = join(DATA_DIR, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.Iriscord_DEV_INSTALL) {
+    if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
         mkdirSync(devSrc, { recursive: true });
         return devSrc;
     }

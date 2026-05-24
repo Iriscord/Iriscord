@@ -19,7 +19,7 @@
 import ErrorBoundary from "@components/ErrorBoundary";
 import { Logger } from "@utils/Logger";
 import { IconComponent } from "@utils/types";
-import { Channel, Message } from "@Iriscord/discord-types";
+import { Channel, Message } from "@iriscord/discord-types";
 import type { ComponentType, MouseEventHandler } from "react";
 
 import { useSettings } from "./Settings";

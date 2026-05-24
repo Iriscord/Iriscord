@@ -7,15 +7,15 @@ While it was primarily created for Iriscord, other client mods could also benefi
 ## Installation
 
 ```bash
-npm install -D @Iriscord/discord-types
-yarn add -D @Iriscord/discord-types
-pnpm add -D @Iriscord/discord-types
+npm install -D @iriscord/discord-types
+yarn add -D @iriscord/discord-types
+pnpm add -D @iriscord/discord-types
 ```
 
 ## Example Usage
 
 ```ts
-import type { UserStore } from "@Iriscord/discord-types";
+import type { UserStore } from "@iriscord/discord-types";
 
 const userStore: UserStore = findStore("UserStore"); // findStore is up to you to implement, this library only provides types and no runtime code
 ```
@@ -24,7 +24,7 @@ const userStore: UserStore = findStore("UserStore"); // findStore is up to you t
 
 This library also exports some const enums that you can use from Typescript code:
 ```ts
-import { ApplicationCommandType } from "@Iriscord/discord-types/enums";
+import { ApplicationCommandType } from "@iriscord/discord-types/enums";
 
 console.log(ApplicationCommandType.CHAT_INPUT); // 1
 ```

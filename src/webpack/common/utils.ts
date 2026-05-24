@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type * as t from "@Iriscord/discord-types";
+import type * as t from "@iriscord/discord-types";
 import { _resolveReady, filters, findByCodeLazy, findByPropsLazy, findLazy, mapMangledModuleLazy, waitFor } from "@webpack";
 import type * as TSPattern from "ts-pattern";
 

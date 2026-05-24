@@ -25,7 +25,7 @@ import { Paragraph } from "@components/Paragraph";
 import { TooltipContainer as TooltipContainerComponent } from "@components/TooltipContainer";
 import { TooltipFallback } from "@components/TooltipFallback";
 import { LazyComponent } from "@utils/lazyReact";
-import * as t from "@Iriscord/discord-types";
+import * as t from "@iriscord/discord-types";
 import { filters, find, findCssClassesLazy, mapMangledCssClasses, mapMangledModuleLazy, proxyLazyWebpack, waitFor } from "@webpack";
 
 import { waitForComponent } from "./internal";
@@ -53,7 +53,7 @@ export const Switch = FormSwitchCompat as never;
 export const Checkbox = waitForComponent<t.Checkbox>("Checkbox", filters.componentByCode('"data-toggleable-component":"checkbox'));
 
 export const Tooltip = waitForComponent<t.Tooltip>("Tooltip", m => m.prototype?.shouldShowTooltip && m.prototype.render, TooltipFallback);
-/** @deprecated import from @Iriscord/components */
+/** @deprecated import from @iriscord/components */
 export const TooltipContainer = TooltipContainerComponent as never;
 
 // FIXME: t.TextInput was for the old void components, and is not 100% correct for the mana component

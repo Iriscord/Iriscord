@@ -35,7 +35,7 @@ import { ContextMenuApi, Forms, Menu, Modal,openModal, Toasts, UserStore } from 
 const CONTRIBUTOR_BADGE = "https://cdn.discordapp.com/emojis/1092089799109775453.png?size=64";
 
 const ContributorBadge: ProfileBadge = {
-    id: "Iriscord_contributor_badge",
+    id: "iriscord_contributor_badge",
     description: "Iriscord Contributor",
     iconSrc: CONTRIBUTOR_BADGE,
     position: BadgePosition.START,
@@ -50,7 +50,7 @@ async function loadBadges(noCache = false) {
     if (noCache)
         init.cache = "no-cache";
 
-    DonorBadges = await fetch("https://badges.Iriscord.dev/badges.json", init)
+    DonorBadges = await fetch("https://badges.iriscord.dev/badges.json", init)
         .then(r => r.json());
 }
 
@@ -175,7 +175,7 @@ export default definePlugin({
 
     getDonorBadges(userId: string) {
         return DonorBadges[userId]?.map((badge, idx) => ({
-            id: `Iriscord_donor_badge_${idx}`,
+            id: `iriscord_donor_badge_${idx}`,
             iconSrc: badge.badge,
             description: badge.tooltip,
             position: BadgePosition.START,

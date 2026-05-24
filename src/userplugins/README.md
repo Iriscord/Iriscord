@@ -12,9 +12,15 @@ Iriscord ships **without** built-in plugins. Add your own here.
 pnpm build
 ```
 
+then
+
+```bash
+pnpm inject
+```
+
 4. Fully quit Discord, then open it again (or use **Relaunch Discord** in Iriscord settings).
 
-You can copy plugins from the [Iriscord plugin tree](https://github.com/Iriscord/Iriscord/tree/main/src/plugins) into this folder.
+You can copy plugins from the [Iriscord plugin tree](https://github.com/Vendicated/Iriscord/tree/main/src/plugins) into this folder.
 
 ## Open this folder from Discord
 

@@ -57,8 +57,8 @@ const nodeCommonOpts = {
 };
 
 const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=iriscord://${s}.js.map`;
-/** Expose legacy Iriscord globals for third-party plugins */
-const pluginCompatFooter = "typeof globalThis!=='undefined'&&(globalThis.Iriscord=globalThis.Iriscord,globalThis.IriscordStyles=globalThis.IriscordStyles??globalThis.IriscordStyles);";
+/** Expose legacy Vencord globals for third-party plugins */
+const pluginCompatFooter = "typeof globalThis!=='undefined'&&(globalThis.Vencord=globalThis.Iriscord,globalThis.VencordStyles=globalThis.IriscordStyles);";
 const sourcemap = watch ? "inline" : "external";
 
 /**

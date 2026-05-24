@@ -65,7 +65,7 @@ export async function exportSettings({ minify }: { minify?: boolean; } = {}) {
 }
 
 export async function downloadSettingsBackup() {
-    const filename = `Iriscord-settings-backup-${moment().format("YYYY-MM-DD")}.json`;
+    const filename = `iriscord-settings-backup-${moment().format("YYYY-MM-DD")}.json`;
     const backup = await exportSettings();
     const data = new TextEncoder().encode(backup);
 

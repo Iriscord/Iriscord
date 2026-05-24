@@ -19,7 +19,7 @@ Environment variables:
 
 | Legacy | Iriscord |
 |--------|----------|
-| `Iriscord_USER_DATA_DIR` | `IRISCORD_USER_DATA_DIR` (either still works) |
+| `IRISCORD_USER_DATA_DIR` | `IRISCORD_USER_DATA_DIR` (either still works) |
 
 ## Plugin compatibility
 
@@ -42,13 +42,13 @@ IriscordNative.quickCss.openEditor()
 
 ## Settings keys
 
-Internal Discord settings panel keys (e.g. `Iriscord_section`, `Iriscord_plugins`) are unchanged so saved UI state and deep links keep working.
+Internal Discord settings panel keys (e.g. `iriscord_section`, `iriscord_plugins`) are unchanged so saved UI state and deep links keep working.
 
 The setting `includeIriscordInfoWhenCopying` is renamed to **`includeIriscordInfoWhenCopying`** in new installs; old values may need re-enabling in **Settings → Settings plugin**.
 
 ## Cloud sync
 
-Default cloud URL is `https://api.iriscord.dev/`. Iriscord cloud (`api.Iriscord.dev`) is not used unless you set it manually in **Cloud** settings.
+Default cloud URL is `https://api.iriscord.dev/`. Iriscord cloud (`api.iriscord.dev`) is not used unless you set it manually in **Cloud** settings.
 
 ## Build artifacts
 

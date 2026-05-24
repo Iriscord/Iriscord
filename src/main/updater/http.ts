@@ -26,7 +26,7 @@ import { join } from "path";
 import gitHash from "~git-hash";
 import gitRemote from "~git-remote";
 
-import { serializeErrors, Iriscord_FILES } from "./common";
+import { serializeErrors, IRISCORD_FILES } from "./common";
 
 const API_BASE = `https://api.github.com/repos/${gitRemote}`;
 let PendingUpdates = [] as [string, string][];
@@ -64,7 +64,7 @@ async function fetchUpdates() {
         return false;
 
     data.assets.forEach(({ name, browser_download_url }) => {
-        if (Iriscord_FILES.some(s => name.startsWith(s))) {
+        if (IRISCORD_FILES.some(s => name.startsWith(s))) {
             PendingUpdates.push([name, browser_download_url]);
         }
     });

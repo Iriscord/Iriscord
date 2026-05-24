@@ -16,20 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { fetchJson } from "@main/utils/http";
-import { IRISCORD_USER_AGENT } from "@shared/iriscordUserAgent";
 import { IpcEvents } from "@shared/IpcEvents";
 import { execFile as cpExecFile } from "child_process";
-import { existsSync } from "fs";
 import { ipcMain } from "electron";
-import { homedir } from "os";
 import { join } from "path";
 import { promisify } from "util";
 
-import gitHash from "~git-hash";
-import gitRemote from "~git-remote";
-
 import { serializeErrors } from "./common";
+
+const IRISCORD_SRC_DIR = join(__dirname, "..");
 
 const execFile = promisify(cpExecFile);
 
@@ -37,73 +32,21 @@ const isFlatpak = process.platform === "linux" && !!process.env.FLATPAK_ID;
 
 if (process.platform === "darwin") process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
 
-function resolveSrcDir() {
-    const localAppData = process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
-    const candidates = [
-        process.env.IRISCORD_SOURCE_DIR,
-        process.env.Iriscord_SOURCE_DIR,
-        join(localAppData, "Iriscord", "source"),
-        join(__dirname, ".."),
-        join(__dirname, "../.."),
-    ].filter((d): d is string => !!d);
-
-    for (const dir of candidates) {
-        if (existsSync(join(dir, ".git"))) return dir;
-    }
-
-    return join(__dirname, "..");
-}
-
-const Iriscord_SRC_DIR = resolveSrcDir();
-const hasGitRepo = existsSync(join(Iriscord_SRC_DIR, ".git"));
-
 function git(...args: string[]) {
-    const opts = { cwd: Iriscord_SRC_DIR };
+    const opts = { cwd: IRISCORD_SRC_DIR };
 
     if (isFlatpak) return execFile("flatpak-spawn", ["--host", "git", ...args], opts);
     else return execFile("git", args, opts);
 }
 
-function normalizeRemoteUrl(url: string) {
-    return url.trim()
+async function getRepo() {
+    const res = await git("remote", "get-url", "origin");
+    return res.stdout.trim()
         .replace(/git@(.+):/, "https://$1/")
         .replace(/\.git$/, "");
 }
 
-async function getRepoFromGit() {
-    const res = await git("remote", "get-url", "origin");
-    return normalizeRemoteUrl(res.stdout);
-}
-
-async function getRepo() {
-    if (hasGitRepo) {
-        try {
-            return await getRepoFromGit();
-        } catch { }
-    }
-
-    return `https://github.com/${gitRemote}`;
-}
-
-async function calculateGitChangesFromApi() {
-    const data = await fetchJson<{ commits: { sha: string; author: { login: string; }; commit: { message: string; }; }[]; }>(
-        `https://api.github.com/repos/${gitRemote}/compare/${gitHash}...HEAD`,
-        {
-            headers: {
-                Accept: "application/vnd.github+json",
-                "User-Agent": IRISCORD_USER_AGENT
-            }
-        }
-    );
-
-    return data.commits.map(c => ({
-        hash: c.sha.slice(0, 7),
-        author: c.author?.login ?? "unknown",
-        message: c.commit.message.split("\n")[0]
-    }));
-}
-
-async function calculateGitChangesFromGit() {
+async function calculateGitChanges() {
     await git("fetch");
 
     const branch = (await git("branch", "--show-current")).stdout.trim();
@@ -123,27 +66,13 @@ async function calculateGitChangesFromGit() {
     }) : [];
 }
 
-async function calculateGitChanges() {
-    if (hasGitRepo) {
-        try {
-            return await calculateGitChangesFromGit();
-        } catch { }
-    }
-
-    return calculateGitChangesFromApi();
-}
-
 async function pull() {
-    if (!hasGitRepo) {
-        throw new Error("Cannot pull updates: Iriscord was installed without a local git checkout. Re-run the installer from a fresh build or clone the repo.");
-    }
-
     const res = await git("pull");
     return res.stdout.includes("Fast-forward");
 }
 
 async function build() {
-    const opts = { cwd: Iriscord_SRC_DIR };
+    const opts = { cwd: IRISCORD_SRC_DIR };
 
     const command = isFlatpak ? "flatpak-spawn" : "node";
     const args = isFlatpak ? ["--host", "node", "scripts/build/build.mjs"] : ["scripts/build/build.mjs"];

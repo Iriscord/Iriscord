@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { Message } from "@Iriscord/discord-types";
+import { Message } from "@iriscord/discord-types";
 import { MessageCache, MessageStore } from "@webpack/common";
 
 /**

@@ -23,85 +23,14 @@ import { contextBridge, webFrame } from "electron/renderer";
 import IriscordNative, { invoke, sendSync } from "./IriscordNative";
 
 contextBridge.exposeInMainWorld("IriscordNative", IriscordNative);
-// Iriscord plugin ecosystem compatibility
-contextBridge.exposeInMainWorld("IriscordNative", IriscordNative);
+// Vencord plugin compatibility
+contextBridge.exposeInMainWorld("VencordNative", IriscordNative);
 
 // Discord
 if (location.protocol !== "data:") {
     invoke(IpcEvents.INIT_FILE_WATCHERS);
 
     if (IS_DISCORD_DESKTOP) {
-        // ── Passkey / WebAuthn suppression ────────────────────────────────────────
-        // Discord calls navigator.credentials.get() which triggers the Windows
-        // Security passkey dialog even before the renderer scripts load.
-        //
-        // Fix A: Synchronous override in the ISOLATED world (this preload context).
-        // This MUST run before require(DISCORD_PRELOAD) so Discord's own preload
-        // cannot call the real credentials API.
-        try {
-            const _passkeyReject = () =>
-                Promise.reject(
-                    Object.assign(new DOMException("Operation not allowed", "NotAllowedError"), { code: 0 })
-                );
-            Object.defineProperty(navigator, "credentials", {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    return {
-                        get: _passkeyReject,
-                        create: _passkeyReject,
-                        store: _passkeyReject,
-                        preventSilentAccess: () => Promise.resolve(),
-                    };
-                },
-            });
-            // @ts-ignore
-            window.PublicKeyCredential = undefined;
-        } catch (_) { }
-
-        // Fix B: Synchronous script tag injection in the MAIN world.
-        // Since preload runs in an isolated context, modifying window.navigator directly in preload
-        // only affects the isolated context. Creating a <script> element and appending it to the DOM
-        // runs it synchronously in the main world's context before page load completes.
-        const mainWorldCode = `
-            (function() {
-                const _reject = () => Promise.reject(Object.assign(new DOMException('Operation not allowed', 'NotAllowedError'), { code: 0 }));
-                try {
-                    // Disable WebAuthn detection entirely
-                    Object.defineProperty(window, 'PublicKeyCredential', {
-                        configurable: true,
-                        enumerable: true,
-                        writable: true,
-                        value: undefined
-                    });
-                    
-                    // Override credentials API
-                    Object.defineProperty(window.navigator, 'credentials', {
-                        configurable: true,
-                        enumerable: true,
-                        get() {
-                            return {
-                                get: _reject,
-                                create: _reject,
-                                store: _reject,
-                                preventSilentAccess: () => Promise.resolve(),
-                            };
-                        }
-                    });
-                } catch(e) {}
-            })();
-        `;
-        try {
-            const script = document.createElement("script");
-            script.textContent = mainWorldCode;
-            (document.head || document.documentElement).appendChild(script);
-            script.remove();
-        } catch (e) {
-            // Fallback to async if DOM is not ready
-            webFrame.executeJavaScript(mainWorldCode);
-        }
-        // ─────────────────────────────────────────────────────────────────────────
-
         webFrame.executeJavaScript(sendSync<string>(IpcEvents.PRELOAD_GET_RENDERER_JS));
         // Not supported in sandboxed preload scripts but Discord doesn't support it either so who cares
         require(process.env.DISCORD_PRELOAD!);

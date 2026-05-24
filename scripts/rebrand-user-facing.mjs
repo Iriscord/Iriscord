@@ -8,9 +8,6 @@ import { join, extname } from "path";
 
 const ROOT = join(import.meta.dirname, "..");
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "packages/iriscord-types/node_modules"]);
-const SKIP_FILES = new Set([
-    "scripts/build/inject/react.mjs",
-]);
 const EXT = new Set([".ts", ".tsx", ".mjs", ".js", ".css", ".html", ".md", ".json"]);
 
 const REPLACEMENTS = [
@@ -36,10 +33,10 @@ const REPLACEMENTS = [
     [/wrapTab\(IriscordSettings/g, "wrapTab(IriscordSettings"],
     [/function IriscordSettings/g, "function IriscordSettings"],
     [/The cutest Discord client mod/g, "A modern Discord client mod — powered by Iris"],
-    [/https:\/\/Iriscord\.dev\//g, "https://iriscord.dev/"],
-    [/https:\/\/api\.Iriscord\.dev\//g, "https://api.iriscord.dev/"],
-    [/\*\.Iriscord\.dev/g, "*.iriscord.dev"],
-    [/badges\.Iriscord\.dev/g, "badges.iriscord.dev"],
+    [/https:\/\/iriscord\.dev\//g, "https://iriscord.dev/"],
+    [/https:\/\/api\.iriscord\.dev\//g, "https://api.iriscord.dev/"],
+    [/\*\.iriscord\.dev/g, "*.iriscord.dev"],
+    [/badges\.iriscord\.dev/g, "badges.iriscord.dev"],
 ];
 
 function walk(dir, files = []) {
@@ -60,8 +57,6 @@ function walk(dir, files = []) {
 let changed = 0;
 for (const file of walk(ROOT)) {
     if (file.includes("rebrand-user-facing")) continue;
-    const rel = file.replace(ROOT + "\\", "").replace(ROOT + "/", "");
-    if (SKIP_FILES.has(rel)) continue;
     let content = readFileSync(file, "utf8");
     const orig = content;
     for (const [re, sub] of REPLACEMENTS) {
