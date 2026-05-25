@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type * as t from "@iriscord/discord-types";
+import type * as t from "@vencord/discord-types";
 import { _resolveReady, filters, findByCodeLazy, findByPropsLazy, findLazy, mapMangledModuleLazy, waitFor } from "@webpack";
 import type * as TSPattern from "ts-pattern";
 
@@ -25,7 +25,7 @@ waitFor(["dispatch", "subscribe"], m => {
     FluxDispatcher = m;
     // Importing this directly causes all webpack commons to be imported, which can easily cause circular dependencies.
     // For this reason, use a non import access here.
-    Iriscord.Api.PluginManager.subscribeAllPluginsFluxEvents(m);
+    Vencord.Api.PluginManager.subscribeAllPluginsFluxEvents(m);
 
     const cb = () => {
         m.unsubscribe("CONNECTION_OPEN", cb);
@@ -216,3 +216,30 @@ export const DateUtils: t.DateUtils = mapMangledModuleLazy("millisecondsInUnit:"
 });
 
 export const MessageTypeSets: t.MessageTypeSets = findByPropsLazy("REPLYABLE", "FORWARDABLE");
+
+export const CloudUploader = findLazy(m => m.prototype?.trackUploadFinished);
+export const ChannelActions = findByPropsLazy("selectChannel", "preload");
+
+// ─── Re-exports for compatibility with Equicord/Vencord plugins ────────────────
+
+// Modal API (from @utils/modal)
+export { openModal, openModalLazy, closeModal, closeAllModals, ModalRoot as Modal, ModalRoot, ModalHeader, ModalContent, ModalFooter, ModalCloseButton } from "@utils/modal";
+
+// Actions
+export const VoiceActions = findByPropsLazy("toggleSelfMute", "setChannel");
+export const GuildActions = findByPropsLazy("requestMembersById", "leaveGuild");
+export const PinActions = findByPropsLazy("pinMessage", "unpinMessage");
+
+// Utils
+export const ReadStateUtils = findByPropsLazy("ackMessage", "hasUnread");
+export const ColorUtils = findByPropsLazy("hex2int", "int2hex");
+export const ApplicationStreamingStore = findByPropsLazy("getAnyStreamForUser", "getStreamForUser");
+export const ApplicationStreamPreviewStore = findByPropsLazy("getPreviewURL");
+export const fetchApplicationsRPC = findByCodeLazy("APPLICATION_RPC(");
+
+// React DnD hooks
+export const useDrag = findByCodeLazy("useDrag", "DragSourceMonitor");
+export const useDrop = findByCodeLazy("useDrop", "DropTargetMonitor");
+
+// ConfirmModal component
+export const ConfirmModal = findByCodeLazy('"confirmButtonText"', '"cancelButtonText"');

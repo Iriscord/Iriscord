@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,10 +22,11 @@ export function makeLinksOpenExternally(win: BrowserWindow) {
     win.webContents.setWindowOpenHandler(({ url }) => {
         switch (url) {
             case "about:blank":
+                return { action: "allow" };
             case "https://discord.com/popout":
             case "https://ptb.discord.com/popout":
             case "https://canary.discord.com/popout":
-                return { action: "allow" };
+                return { action: "deny" };
         }
 
         try {

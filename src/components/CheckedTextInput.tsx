@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,13 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { React, TextInput, useState } from "@webpack/common";
+import { React, TextInput } from "@webpack/common";
 
 interface TextInputProps {
     /**
      * WARNING: Changing this between renders will have no effect!
      */
-    initialValue: string;
+    value: string;
     /**
      * This will only be called if the new value passed validate()
      */
@@ -33,21 +33,21 @@ interface TextInputProps {
      * Otherwise, return a string containing the reason for this input being invalid
      */
     validate(v: string): true | string;
+
+    placeholder?: string;
 }
 
 /**
  * A very simple wrapper around Discord's TextInput that validates input and shows
  * the user an error message and only calls your onChange when the input is valid
  */
-export function CheckedTextInput({ initialValue, onChange, validate }: TextInputProps) {
-    const [value, setValue] = useState(initialValue);
-    const [error, setError] = useState<string>();
+export function CheckedTextInput({ value: initialValue, onChange, validate, placeholder }: TextInputProps) {
+    const [value, setValue] = React.useState(initialValue);
+    const [error, setError] = React.useState<string>();
 
     function handleChange(v: string) {
         setValue(v);
-
         const res = validate(v);
-
         if (res === true) {
             setError(void 0);
             onChange(v);
@@ -63,6 +63,7 @@ export function CheckedTextInput({ initialValue, onChange, validate }: TextInput
                 value={value}
                 onChange={handleChange}
                 error={error}
+                placeholder={placeholder}
             />
         </>
     );

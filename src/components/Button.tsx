@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2025 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -8,7 +8,7 @@ import "./Button.css";
 
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
-import type { Button as DiscordButton } from "@iriscord/discord-types";
+import type { Button as DiscordButton } from "@vencord/discord-types";
 import type { ComponentPropsWithRef } from "react";
 
 import { OpenExternalIcon } from "./Icons";

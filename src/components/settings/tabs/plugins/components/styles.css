@@ -26,8 +26,8 @@
     color: var(--text-strong);
 }
 
-.vc-plugins-setting-description {
-    color: var(--text-default);
+.vc-plugins-setting-inline .vc-plugins-setting-description {
+    color: var(--text-subtle);
 }
 
 .vc-plugins-setting-error {

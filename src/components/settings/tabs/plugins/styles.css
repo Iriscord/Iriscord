@@ -1,5 +1,5 @@
-/*
- * Iriscord, a modification for Discord's desktop app
+﻿/*
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,34 +46,6 @@
     height: 40px;
     gap: 10px;
     grid-template-columns: 1fr 1fr;
-    align-items: center;
-}
-
-.vc-plugins-filter-control {
-    height: 40px;
-}
-
-.vc-plugins-search {
-    margin-bottom: 16px;
-}
-
-
-
-.vc-plugins-empty {
-    color: var(--text-muted);
-    margin-top: 4px;
-}
-
-.vc-addon-badge {
-    padding: 0 6px;
-    font-family: var(--font-display);
-    font-weight: 500;
-    border-radius: 8px;
-    height: 16px;
-    font-size: 12px;
-    line-height: 16px;
-    color: var(--white-500);
-    text-align: center;
 }
 
 .vc-plugins-dep-name {
@@ -82,23 +54,386 @@
 
 .vc-plugins-info-card {
     padding: 1em;
-    height: 8em;
+    height: fit-content;
     display: flex;
     flex-direction: column;
+    background-color: var(--background-base-lower-alt) !important;
+    transition: 0.1s ease-out;
+    transition-property: box-shadow, transform, background, opacity;
     gap: 0.25em;
 }
 
-.vc-plugins-restart-button {
-    margin-top: 0.5em;
+.vc-plugins-restart-card {
+    padding: 1em;
     background: var(--icon-status-idle) !important;
+    border: 1px solid var(--icon-status-idle) !important;
+    color: var(--text-status-idle);
 }
 
 .vc-plugins-info-icon:not(:hover, :focus) {
+    color: var(--text-subtle);
+}
+
+.vc-plugins-restart-button {
+    background-color: var(--background-base-low) !important;
+    border: 1px solid var(--text-status-idle) !important;
+    margin-top: 0.5em;
+}
+
+.vc-plugins-restart-button:hover {
+    background-color: var(--text-status-idle) !important;
+}
+
+.vc-plugin-stats {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.08) 0%, rgba(114, 137, 218, 0.04) 100%);
+    border: 1px solid rgba(88, 101, 242, 0.15);
+    border-radius: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.vc-plugin-stats::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.12) 0%, rgba(114, 137, 218, 0.06) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.vc-plugins-info-card:hover,
+.vc-plugin-stats:hover {
+    transform: translateY(-2px);
+    border-color: rgba(88, 101, 242, 0.3);
+    box-shadow: 0 8px 24px rgba(88, 101, 242, 0.15);
+}
+
+.vc-plugin-stats:hover::before {
+    opacity: 1;
+}
+
+.vc-plugin-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-plugin-stats-badge {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.2) 0%, rgba(114, 137, 218, 0.15) 100%);
+    border: 1px solid rgba(88, 101, 242, 0.3);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-brand);
+}
+
+.vc-plugin-stats-badge-user {
+    background: linear-gradient(135deg, rgba(87, 242, 135, 0.2) 0%, rgba(67, 181, 129, 0.15) 100%);
+    border-color: rgba(87, 242, 135, 0.3);
+    color: rgb(67, 181, 129);
+}
+
+.vc-plugin-stats-card-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-plugin-stats-card-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.vc-plugin-stats-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.vc-plugin-stats-icon-enabled {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.15) 0%, rgba(114, 137, 218, 0.1) 100%);
+    color: var(--text-brand);
+}
+
+.vc-plugin-stats-icon-total {
+    background: linear-gradient(135deg, rgba(148, 155, 164, 0.15) 0%, rgba(128, 132, 142, 0.1) 100%);
     color: var(--text-muted);
+}
+
+.vc-plugin-stats:hover .vc-plugin-stats-icon {
+    transform: scale(1.1);
+}
+
+.vc-plugin-stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vc-plugin-stats-card-divider {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(180deg, transparent 0%, rgba(88, 101, 242, 0.2) 50%, transparent 100%);
+}
+
+.vc-plugin-stats-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-plugin-stats-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(88, 101, 242, 0.8) 0%, rgba(114, 137, 218, 0.9) 100%);
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(88, 101, 242, 0.5);
+}
+
+.vc-plugin-stats-progress-bar-user {
+    background: linear-gradient(90deg, rgba(87, 242, 135, 0.8) 0%, rgba(67, 181, 129, 0.9) 100%);
+    box-shadow: 0 0 10px rgba(87, 242, 135, 0.5);
+}
+
+/* Empty state for userplugins */
+.vc-userplugins-empty {
+    background: linear-gradient(135deg, rgba(148, 155, 164, 0.08) 0%, rgba(128, 132, 142, 0.04) 100%);
+    border: 1px dashed rgba(148, 155, 164, 0.3);
+    min-height: 180px;
+    justify-content: center;
+}
+
+.vc-plugin-stats-empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.vc-plugin-stats-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(148, 155, 164, 0.15) 0%, rgba(128, 132, 142, 0.1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.vc-userplugins-card {
+    background: linear-gradient(135deg, rgba(87, 242, 135, 0.08) 0%, rgba(67, 181, 129, 0.04) 100%);
+    border-color: rgba(87, 242, 135, 0.15);
+}
+
+.vc-userplugins-card::before {
+    background: linear-gradient(135deg, rgba(87, 242, 135, 0.12) 0%, rgba(67, 181, 129, 0.06) 100%);
+}
+
+.vc-userplugins-card:hover {
+    border-color: rgba(87, 242, 135, 0.3);
+    box-shadow: 0 8px 24px rgba(87, 242, 135, 0.15);
+}
+
+/* Shared styles for warning modal and disable all modal */
+
+.vc-text-selectable {
+    user-select: none;
+}
+
+.vc-warning-info {
+    gap: 15px;
+    display: grid !important;
+    flex-direction: column;
+    user-select: none;
+}
+
+.vc-warning-info img {
+    width: 70%;
+    height: auto;
+    display: block;
+    margin: auto auto 10px;
+}
+
+.vc-warning-info strong {
+    font-weight: bold;
+}
+
+.text-danger {
+    color: var(--text-feedback-critical) !important;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.text-normal {
+    color: var(--text-default);
+    font-size: 1.2rem;
+}
+
+.text-normal.margin-bottom {
+    margin-bottom: 10px;
+}
+
+.vc-plugins-disable-warning,
+.vc-plugin-modal-disable-warning {
+    background-color: color-mix(in srgb, var(--status-danger) 10%, transparent) !important;
+    border-style: solid !important;
+    border-width: .1rem !important;
+    border-color: color-mix(in srgb, var(--status-danger) 80%, transparent) !important;
+    border-radius: 5px !important;
+    color: color-mix(in srgb, var(--status-danger) 100%, transparent) !important;
+}
+
+.vc-plugins-disable-warning:hover,
+.vc-plugin-modal-disable-warning:hover {
+    background-color: color-mix(in srgb, var(--status-danger) 40%, transparent) !important;
+}
+
+.vc-plugins-confirm-reset,
+.vc-plugin-modal-confirm-reset {
+    background-color: var(--status-danger) !important;
+    color: var(--text-default);
+}
+
+.vc-plugins-confirm-reset:hover,
+.vc-plugin-modal-confirm-reset:hover {
+    background-color: var(--text-feedback-critical) !important;
+    color: var(--text-default);
+}
+
+.vc-modal-close-button {
+    margin-left: auto !important;
+}
+
+.vc-modal-align-reset {
+    align-self: end;
+}
+
+.vc-modal-footer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.vc-modal-footer .vc-button-container {
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between !important;
+}
+
+/* Specific to disable all modal */
+
+.warning-text {
+    color: var(--text-feedback-critical) !important;
+    font-size: 1.2rem !important;
+}
+
+.warning-text span {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.visual-refresh .button-danger-background {
+    font-size: 16px;
+    background-color: rgb(240 71 71 / 10%) !important;
+    color: rgb(240 71 71) !important;
+    border: 1px solid rgb(240 71 71 / 60%) !important;
+    border-radius: 4px;
+    font-weight: 500;
+    padding: 6px 10px;
+    text-align: center;
+}
+
+.visual-refresh .button-danger-background:hover {
+    background-color: var(--status-danger-background) !important;
+    color: var(--status-danger-text) !important;
+}
+
+.visual-refresh .vc-plugins-info-card {
+    background-color: var(--background-surface-high) !important;
+    border: 1px solid var(--border-subtle) !important;
+
+    &:hover {
+        background-color: var(--background-surface-high) !important;
+    }
+}
+
+.visual-refresh .vc-plugin-stats {
+    background-color: var(--background-surface-high) !important;
+    border: 1px solid var(--border-subtle) !important;
+
+    &:hover {
+        background-color: var(--background-surface-high) !important;
+    }
 }
 
 .vc-plugins-settings {
     display: flex;
     flex-direction: column;
     gap: 1.25em;
+}
+
+.vc-plugins-page-buttons {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.vc-plugins-source {
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    margin-right: 8px;
+}
+
+.vc-plugins-stats-container {
+    margin-top: 16px;
+    gap: 16px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.vc-plugins-ui-elements {
+    margin-top: 16px;
+}
+
+.nc-tutorial-modal {
+    width: 80vw !important;
+    max-width: 900px !important;
+    min-width: 600px !important;
 }

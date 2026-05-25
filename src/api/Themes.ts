@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,10 +18,10 @@
 
 import { Settings, SettingsStore } from "@api/Settings";
 import { createAndAppendStyle } from "@utils/css";
-import { ThemeStore } from "@iriscord/discord-types";
+import { ThemeStore } from "@vencord/discord-types";
 import { PopoutWindowStore } from "@webpack/common";
 
-import { userStyleRootNode, iriscordRootNode } from "./Styles";
+import { userStyleRootNode, vencordRootNode } from "./Styles";
 
 let style: HTMLStyleElement;
 let themesStyle: HTMLStyleElement;
@@ -29,23 +29,23 @@ let themesStyle: HTMLStyleElement;
 async function toggle(isEnabled: boolean) {
     if (!style) {
         if (isEnabled) {
-            style = createAndAppendStyle("iriscord-custom-css", userStyleRootNode);
-            IriscordNative.quickCss.addChangeListener(css => {
+            style = createAndAppendStyle("vencord-custom-css", userStyleRootNode);
+            VencordNative.quickCss.addChangeListener(css => {
                 style.textContent = css;
                 // At the time of writing this, changing textContent resets the disabled state
                 style.disabled = !Settings.useQuickCss;
                 updatePopoutWindows();
             });
-            style.textContent = await IriscordNative.quickCss.get();
+            style.textContent = await VencordNative.quickCss.get();
         }
     } else
         style.disabled = !isEnabled;
 }
 
 async function initThemes() {
-    themesStyle ??= createAndAppendStyle("iriscord-themes", userStyleRootNode);
+    themesStyle ??= createAndAppendStyle("vencord-themes", userStyleRootNode);
 
-    const { themeLinks, enabledThemes } = Settings;
+    const { enabledThemeLinks, enabledThemes } = Settings;
 
     const { ThemeStore } = require("@webpack/common/stores") as typeof import("@webpack/common/stores");
 
@@ -55,7 +55,7 @@ async function initThemes() {
         ? undefined
         : ThemeStore.theme === "light" ? "light" : "dark";
 
-    const links = themeLinks
+    const links = enabledThemeLinks
         .map(rawLink => {
             const match = /^@(light|dark) (.*)/.exec(rawLink);
             if (!match) return rawLink;
@@ -67,13 +67,13 @@ async function initThemes() {
 
     if (IS_WEB) {
         for (const theme of enabledThemes) {
-            const themeData = await IriscordNative.themes.getThemeData(theme);
+            const themeData = await VencordNative.themes.getThemeData(theme);
             if (!themeData) continue;
             const blob = new Blob([themeData], { type: "text/css" });
             links.push(URL.createObjectURL(blob));
         }
     } else {
-        const localThemes = enabledThemes.map(theme => `iriscord:///themes/${theme}?v=${Date.now()}`);
+        const localThemes = enabledThemes.map(theme => `vencord:///themes/${theme}?v=${Date.now()}`);
         links.push(...localThemes);
     }
 
@@ -88,9 +88,9 @@ function applyToPopout(popoutWindow: Window | undefined, key: string) {
 
     const doc = popoutWindow.document;
 
-    doc.querySelector("iriscord-root")?.remove();
+    doc.querySelector("vencord-root")?.remove();
 
-    doc.documentElement.appendChild(iriscordRootNode.cloneNode(true));
+    doc.documentElement.appendChild(vencordRootNode.cloneNode(true));
 }
 
 function updatePopoutWindows() {
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggle(Settings.useQuickCss);
     SettingsStore.addChangeListener("useQuickCss", toggle);
 
-    SettingsStore.addChangeListener("themeLinks", initThemes);
+    SettingsStore.addChangeListener("enabledThemeLinks", initThemes);
     SettingsStore.addChangeListener("enabledThemes", initThemes);
 
     window.addEventListener("message", event => {
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (!IS_WEB) {
-        IriscordNative.quickCss.addThemeChangeListener(initThemes);
+        VencordNative.quickCss.addThemeChangeListener(initThemes);
     }
 }, { once: true });
 

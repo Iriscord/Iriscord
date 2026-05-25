@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -140,6 +140,12 @@ export function _usePatchContextMenu(props: ContextMenuProps) {
 
     props.contextMenuAPIArguments ??= [];
     const contextMenuPatches = navPatches.get(props.navId);
+
+    // ── Stealth Mode Bypass ──
+    try {
+        const { isStealthModeEnabled } = require("./HeaderBar");
+        if (isStealthModeEnabled()) return props;
+    } catch { }
 
     if (!Array.isArray(props.children)) props.children = [props.children];
 

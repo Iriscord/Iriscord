@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,16 +25,16 @@ import { Paragraph } from "@components/Paragraph";
 import { TooltipContainer as TooltipContainerComponent } from "@components/TooltipContainer";
 import { TooltipFallback } from "@components/TooltipFallback";
 import { LazyComponent } from "@utils/lazyReact";
-import * as t from "@iriscord/discord-types";
+import * as t from "@vencord/discord-types";
 import { filters, find, findCssClassesLazy, mapMangledCssClasses, mapMangledModuleLazy, proxyLazyWebpack, waitFor } from "@webpack";
 
 import { waitForComponent } from "./internal";
 
 export const Forms = {
     // TODO: Stop using this and use Heading/Paragraph directly
-    /** @deprecated use Heading from Iriscord */
+    /** @deprecated use Heading from Vencord */
     FormTitle: Heading,
-    /** @deprecated use Paragraph from Iriscord */
+    /** @deprecated use Paragraph from Vencord */
     FormText: Paragraph,
     /** @deprecated don't use this */
     FormSection: "section" as never, // Backwards compat since Vesktop uses this
@@ -43,23 +43,28 @@ export const Forms = {
 };
 
 // TODO: Stop using this and use Paragraph/Span directly
-/** @deprecated use Paragraph, Span, or BaseText from Iriscord */
+/** @deprecated use Paragraph, Span, or BaseText from Vencord */
 export const Text = TextCompat;
-/** @deprecated use Button from Iriscord */
+/** @deprecated use Button from Vencord */
 export const Button = ButtonCompat;
-/** @deprecated Use FormSwitch from Iriscord */
+/** @deprecated Use FormSwitch from Vencord */
 export const Switch = FormSwitchCompat as never;
 
 export const Checkbox = waitForComponent<t.Checkbox>("Checkbox", filters.componentByCode('"data-toggleable-component":"checkbox'));
 
 export const Tooltip = waitForComponent<t.Tooltip>("Tooltip", m => m.prototype?.shouldShowTooltip && m.prototype.render, TooltipFallback);
-/** @deprecated import from @iriscord/components */
+/** @deprecated import from @vencord/components */
 export const TooltipContainer = TooltipContainerComponent as never;
 
 // FIXME: t.TextInput was for the old void components, and is not 100% correct for the mana component
 export const TextInput = waitForComponent<t.TextInput>("TextInput", filters.componentByCode('setHasValue?.(""!==', '="text",'));
 export const TextArea = waitForComponent<t.TextArea>("TextArea", filters.componentByCode("!0,rows:", "showRemainingCharacterCount:"));
-export const Select = waitForComponent<t.Select>("Select", filters.componentByCode('selectionMode:"single",onSelectionChange:', "isSelected:"));
+export const Select = waitForComponent<t.Select>("Select",
+    m => filters.componentByCode("renderLeading:", "isSelected:", "renderOptionLabel:")(m)
+    || filters.componentByCode('selectionMode:"single",onSelectionChange:', "isSelected:")(m)
+    || filters.componentByCode("isSelected:", "serialize:", "closeOnSelect:")(m)
+    || filters.componentByCode("onSelectionChange:", "isSelected:", "serialize:")(m)
+);
 export const SearchableSelect = waitForComponent<t.SearchableSelect>("SearchableSelect", filters.componentByCode('?"multiple":"single",required:'));
 export const Slider = waitForComponent<t.Slider>("Slider", filters.componentByCode("markDash", "this.renderMark("));
 export const Popout = waitForComponent<t.Popout>("Popout", filters.componentByCode("ref:this.ref,", "renderPopout:this.renderPopout,"));
@@ -124,3 +129,5 @@ export const Animations = mapMangledModuleLazy(".assign({colorNames:", {
     Transition: filters.componentByCode('["items","children"]', ",null,"),
     animated: filters.byProps("div", "text")
 });
+
+export const Paginator = waitForComponent("Paginator", filters.componentByCode("maxVisiblePages", "pageSize"));

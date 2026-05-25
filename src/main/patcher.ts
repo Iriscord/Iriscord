@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,31 +17,44 @@
 */
 
 import { onceDefined } from "@shared/onceDefined";
-import electron, { app, BrowserWindowConstructorOptions, Menu } from "electron";
+import electron, { app, BrowserWindowConstructorOptions, Menu, session } from "electron";
+import { existsSync as fsExistsSync, statSync as fsStatSync } from "original-fs";
 import { dirname, join } from "path";
+import { registerMediaPermissionsForSession } from "../luacord/main/mediaPermissions";
+
+// Note: luacordTray removed — Luacord injects silently into Discord,
+// Discord manages its own tray icon (same behaviour as Equicord).
 
 import { RendererSettings } from "./settings";
+import { patchTrayMenu } from "./trayMenu";
 import { IS_VANILLA } from "./utils/constants";
 
-console.log("[Iriscord] Starting up...");
+console.log("[Luacord] Starting up...");
 
 // Our injector file at app/index.js
 const injectorPath = require.main!.filename;
 
-// special discord_arch_electron injection method
-const asarName = require.main!.path.endsWith("app.asar") ? "_app.asar" : "app.asar";
-
 // The original app.asar
-const asarPath = join(dirname(injectorPath), "..", asarName);
+// With Discord's newUpdater system, _app.asar may not exist as a real file.
+// In that case, fall back to process.resourcesPath which points to Discord's resources folder.
+const _asarFromInjector = join(dirname(injectorPath), "..", "_app.asar");
+const _asarFromResources = join(process.resourcesPath, "_app.asar");
+const asarPath = (fsExistsSync(_asarFromInjector) && !fsStatSync(_asarFromInjector).isDirectory())
+    ? _asarFromInjector
+    : _asarFromResources;
 
 const discordPkg = require(join(asarPath, "package.json"));
 require.main!.filename = join(asarPath, discordPkg.main);
+if (IS_VESKTOP || IS_EQUIBOP) require.main!.filename = join(dirname(injectorPath), "..", "..", "package.json");
 
 // @ts-expect-error Untyped method? Dies from cringe
 app.setAppPath(asarPath);
 
 if (!IS_VANILLA) {
     const settings = RendererSettings.store;
+
+    patchTrayMenu();
+
     // Repatch after host updates on Windows
     if (process.platform === "win32") {
         require("./patchWin32Updater");
@@ -68,57 +81,155 @@ if (!IS_VANILLA) {
 
     class BrowserWindow extends electron.BrowserWindow {
         constructor(options: BrowserWindowConstructorOptions) {
-            if (!options?.webPreferences?.preload || !options.title) {
+            if (options?.webPreferences?.preload && options.title) {
+                const original = options.webPreferences.preload;
+                const isMainWindow = options.title === "Discord";
+                options.webPreferences.preload = join(__dirname, "preload.js");
+                options.webPreferences.sandbox = false;
+                // work around discord unloading when in background
+                options.webPreferences.backgroundThrottling = false;
+
+                let ses = options.webPreferences.session;
+                if (!ses && options.webPreferences.partition) {
+                    ses = electron.session.fromPartition(options.webPreferences.partition);
+                }
+                ses ??= electron.session.defaultSession;
+                registerMediaPermissionsForSession(ses);
+
+                if (settings.frameless) {
+                    options.frame = false;
+                } else if (settings.mainWindowFrameless && isMainWindow) {
+                    options.frame = false;
+                } else if (process.platform === "win32" && settings.winNativeTitleBar) {
+                    delete options.frame;
+                }
+
+                if (settings.transparent) {
+                    options.transparent = true;
+                    options.backgroundColor = "#00000000";
+                }
+
+                // Windows 11 acrylic/mica effect
+                const winMaterial = settings.windowMaterial as string | undefined;
+                if (process.platform === "win32" && winMaterial && winMaterial !== "none") {
+                    options.transparent = true;
+                    options.backgroundColor = "#00000000";
+                }
+
+                if (settings.disableMinSize) {
+                    options.minWidth = 0;
+                    options.minHeight = 0;
+                }
+
+                const needsVibrancy = process.platform === "darwin" && settings.macosVibrancyStyle;
+
+                if (needsVibrancy) {
+                    options.backgroundColor = "#00000000";
+                    if (settings.macosVibrancyStyle) {
+                        options.vibrancy = settings.macosVibrancyStyle;
+                    }
+                }
+
+                options.fullscreenable = true;
+
+                process.env.DISCORD_PRELOAD = original;
+
                 super(options);
-                return;
-            }
 
-            const { frameless, winNativeTitleBar, disableMinSize, transparent, macosVibrancyStyle, windowsMaterial } = settings;
+                const isTransparent = !!options.transparent;
+                let isFakeFullScreen = false;
+                let originalBounds: electron.Rectangle | null = null;
+                let isMaximizedBefore = false;
+                let transitioning = false;
 
-            const original = options.webPreferences.preload;
-            options.webPreferences.preload = join(__dirname, "preload.js");
-            options.webPreferences.sandbox = false;
-            // work around discord unloading when in background
-            options.webPreferences.backgroundThrottling = false;
+                const superSetFullScreen = this.setFullScreen.bind(this);
+                const superIsFullScreen = this.isFullScreen.bind(this);
 
-            if (frameless) {
-                options.frame = false;
-            } else if (process.platform === "win32" && winNativeTitleBar) {
-                delete options.frame;
-            }
+                this.setFullScreen = (flag: boolean) => {
+                    if (transitioning) return;
+                    transitioning = true;
+                    try {
+                        if (isTransparent) {
+                            if (flag) {
+                                if (isFakeFullScreen) return;
+                                isFakeFullScreen = true;
+                                originalBounds = this.getBounds();
+                                isMaximizedBefore = this.isMaximized();
+                                
+                                const display = electron.screen.getDisplayMatching(originalBounds).bounds;
+                                
+                                this.setResizable(false);
+                                this.setBounds(display);
+                                this.setAlwaysOnTop(true, "screen-saver");
+                                this.emit("enter-full-screen");
+                            } else {
+                                if (!isFakeFullScreen) return;
+                                isFakeFullScreen = false;
+                                this.setAlwaysOnTop(false);
+                                this.setResizable(true);
+                                if (isMaximizedBefore) {
+                                    this.maximize();
+                                } else if (originalBounds) {
+                                    this.setBounds(originalBounds);
+                                }
+                                this.emit("leave-full-screen");
+                            }
+                        } else {
+                            superSetFullScreen(flag);
+                        }
+                    } finally {
+                        transitioning = false;
+                    }
+                };
 
-            if (disableMinSize) {
-                options.minWidth = 0;
-                options.minHeight = 0;
-            }
+                this.isFullScreen = () => {
+                    if (isTransparent) {
+                        return isFakeFullScreen;
+                    }
+                    return superIsFullScreen();
+                };
 
-            if (transparent) {
-                options.transparent = true;
-                options.backgroundColor = "#00000000";
-            }
-            if (process.platform === "darwin" && macosVibrancyStyle) {
-                options.vibrancy = macosVibrancyStyle;
-                options.backgroundColor = "#00000000";
-            }
-            if (process.platform === "win32" && windowsMaterial && windowsMaterial !== "none") {
-                options.backgroundMaterial = windowsMaterial;
-                options.backgroundColor = "#00000000";
-            }
+                if (isTransparent) {
+                    this.on("enter-html-full-screen", () => {
+                        if (!isFakeFullScreen) this.setFullScreen(true);
+                    });
+                    this.on("leave-html-full-screen", () => {
+                        if (isFakeFullScreen) this.setFullScreen(false);
+                    });
+                }
 
-            process.env.DISCORD_PRELOAD = original;
+                // Apply Windows background material after window creation.
+                // Win11 uses setBackgroundMaterial; Win10 falls back to vibrancy.
+                if (process.platform === "win32" && winMaterial && winMaterial !== "none") {
+                    try {
+                        let applied = false;
+                        // @ts-ignore
+                        if (typeof this.setBackgroundMaterial === "function") {
+                            this.setBackgroundMaterial(winMaterial);
+                            applied = true;
+                        }
+                        // @ts-ignore
+                        if (!applied && typeof this.setVibrancy === "function") {
+                            this.setVibrancy(winMaterial === "acrylic" ? "acrylic" : "under-window");
+                            applied = true;
+                        }
+                        if (!applied) {
+                            console.warn("[Luacord] No background material API available on this system");
+                        }
+                    } catch (e) {
+                        console.error("[Luacord] setBackgroundMaterial failed:", e);
+                    }
+                }
 
-            super(options);
-
-            if (disableMinSize) {
-                // Disable the Electron call entirely so that Discord can't dynamically change the size
-                this.setMinimumSize = (_width: number, _height: number) => { };
-            }
+                if (settings.disableMinSize) {
+                    this.setMinimumSize = (_width: number, _height: number) => { };
+                }
+            } else super(options);
         }
     }
     Object.assign(BrowserWindow, electron.BrowserWindow);
     // esbuild may rename our BrowserWindow, which leads to it being excluded
     // from getFocusedWindow(), so this is necessary
-    // https://github.com/discord/electron/blob/13-x-y/lib/browser/api/browser-window.ts#L60-L62
     Object.defineProperty(BrowserWindow, "name", { value: "BrowserWindow", configurable: true });
 
     // Replace electrons exports with our custom BrowserWindow
@@ -129,38 +240,65 @@ if (!IS_VANILLA) {
         BrowserWindow
     };
 
-    // Patch appSettings to force enable devtools
-    onceDefined(global, "appSettings", s => {
-        s.set("DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING", true);
+    // Activer DevTools uniquement en mode développement
+    if (IS_DEV) {
+        onceDefined(global, "appSettings", s => {
+            s.set("DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING", true);
+        });
+    }
+
+    process.env.DATA_DIR = join(app.getPath("userData"), "..", "Luacord");
+
+    app.whenReady().then(() => {
+        registerMediaPermissionsForSession(session.defaultSession);
     });
 
-    process.env.DATA_DIR = join(app.getPath("userData"), "..", "Iriscord");
+    // Intercept native Discord DISCORD_WINDOW_TOGGLE_FULLSCREEN IPC.
+    // MUST be registered synchronously HERE — before require(discord) below.
+    // Discord registers its own handler at module load time (synchronously).
+    // If we wait for app.whenReady(), Discord's handler is already registered
+    // and ipcMain.handle() throws "Attempted to register a second handler" → crash.
+    //
+    // Strategy: patch ipcMain.handle itself to intercept Discord's registration
+    // and replace it with our own guarded version immediately.
+    {
+        const _originalHandle = electron.ipcMain.handle.bind(electron.ipcMain);
+        const FULLSCREEN_CHANNEL = "DISCORD_WINDOW_TOGGLE_FULLSCREEN";
+        let _fullscreenPatched = false;
 
-    // Monkey patch commandLine to:
-    // - disable WidgetLayering: Fix DevTools context menus https://github.com/electron/electron/issues/38790
-    // - disable UseEcoQoSForBackgroundProcess: Work around Discord unloading when in background
+        // Override ipcMain.handle so when Discord calls .handle(FULLSCREEN, ...)
+        // we silently drop it and register our own handler instead.
+        (electron.ipcMain as any).handle = function(channel: string, listener: any) {
+            if (channel === FULLSCREEN_CHANNEL) {
+                if (_fullscreenPatched) return; // already registered ours — ignore Discord's
+                _fullscreenPatched = true;
+                // Register our handler instead of Discord's
+                _originalHandle(FULLSCREEN_CHANNEL, (event: electron.IpcMainInvokeEvent) => {
+                    const win = electron.BrowserWindow.fromWebContents(event.sender);
+                    if (win) win.setFullScreen(!win.isFullScreen());
+                });
+                return;
+            }
+            return _originalHandle(channel, listener);
+        };
+    }
+
     const originalAppend = app.commandLine.appendSwitch;
+    const _ncDisabledFeatures = new Set(["WidgetLayering", "UseEcoQoSForBackgroundProcess"]);
     app.commandLine.appendSwitch = function (...args) {
         if (args[0] === "disable-features") {
-            const disabledFeatures = new Set((args[1] ?? "").split(","));
-            disabledFeatures.add("WidgetLayering");
-            disabledFeatures.add("UseEcoQoSForBackgroundProcess");
-            args[1] += [...disabledFeatures].join(",");
+            (args[1] ?? "").split(",").filter(Boolean).forEach((f: string) => _ncDisabledFeatures.add(f));
+            args[1] = [..._ncDisabledFeatures].join(",");
         }
         return originalAppend.apply(this, args);
     };
 
-    // disable renderer backgrounding to prevent the app from unloading when in the background
-    // https://github.com/electron/electron/issues/2822
-    // https://github.com/GoogleChrome/chrome-launcher/blob/5a27dd574d47a75fec0fb50f7b774ebf8a9791ba/docs/chrome-flags-for-tools.md#task-throttling
-    // Work around discord unloading when in background
-    // Discord also recently started adding these flags but only on windows for some reason dunno why, it happens on Linux too
     app.commandLine.appendSwitch("disable-renderer-backgrounding");
     app.commandLine.appendSwitch("disable-background-timer-throttling");
     app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
 } else {
-    console.log("[Iriscord] Running in vanilla mode. Not loading Iriscord");
+    console.log("[Luacord] Running in vanilla mode. Not loading Luacord");
 }
 
-console.log("[Iriscord] Loading original Discord app.asar");
+console.log("[Luacord] Loading original Discord app.asar");
 require(require.main!.filename);

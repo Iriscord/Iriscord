@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,48 +31,47 @@ export interface Style {
     dom: HTMLStyleElement | null;
 }
 
-export const styleMap = (window.IriscordStyles ??= new Map());
-window.VencordStyles ??= window.IriscordStyles;
+export const styleMap = window.VencordStyles ??= new Map();
 
-export const iriscordRootNode = document.createElement("iriscord-root");
+export const vencordRootNode = document.createElement("vencord-root");
 /**
- * Houses all Iriscord core styles. This includes all imported css files
+ * Houses all Vencord core styles. This includes all imported css files
  */
-export const coreStyleRootNode = document.createElement("iriscord-styles");
+export const coreStyleRootNode = document.createElement("vencord-styles");
 /**
  * Houses all plugin specific managed styles
  */
-export const managedStyleRootNode = document.createElement("iriscord-managed-styles");
+export const managedStyleRootNode = document.createElement("vencord-managed-styles");
 /**
  * Houses the user's themes and quick css
  */
-export const userStyleRootNode = document.createElement("iriscord-user-styles");
+export const userStyleRootNode = document.createElement("vencord-user-styles");
 
-iriscordRootNode.style.display = "none";
-iriscordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
+vencordRootNode.style.display = "none";
+vencordRootNode.append(coreStyleRootNode, managedStyleRootNode, userStyleRootNode);
 
 export function initStyles() {
-    const osValuesNode = createAndAppendStyle("iriscord-os-theme-values", coreStyleRootNode);
-    createAndAppendStyle("iriscord-text", coreStyleRootNode).textContent = generateTextCss();
-    const rendererCssNode = createAndAppendStyle("iriscord-css-core", coreStyleRootNode);
-    const vesktopCssNode = IS_VESKTOP ? createAndAppendStyle("vesktop-css-core", coreStyleRootNode) : null;
-    createAndAppendStyle("iriscord-margins", coreStyleRootNode).textContent = generateMarginCss();
+    const osValuesNode = createAndAppendStyle("vencord-os-theme-values", coreStyleRootNode);
+    createAndAppendStyle("vencord-text", coreStyleRootNode).textContent = generateTextCss();
+    const rendererCssNode = createAndAppendStyle("vencord-css-core", coreStyleRootNode);
+    const vesktopCssNode = (IS_VESKTOP || IS_EQUIBOP) ? createAndAppendStyle("vesktop-css-core", coreStyleRootNode) : null;
+    createAndAppendStyle("vencord-margins", coreStyleRootNode).textContent = generateMarginCss();
 
-    IriscordNative.native.getRendererCss().then(css => rendererCssNode.textContent = css);
+    VencordNative.native.getRendererCss().then(css => rendererCssNode.textContent = css);
     if (IS_DEV) {
-        IriscordNative.native.onRendererCssUpdate(newCss => {
+        VencordNative.native.onRendererCssUpdate(newCss => {
             rendererCssNode.textContent = newCss;
         });
     }
 
-    if (IS_VESKTOP && VesktopNative.app.getRendererCss) {
+    if (IS_VESKTOP && VesktopNative.app.getRendererCss || IS_EQUIBOP && VesktopNative.app.getRendererCss) {
         VesktopNative.app.getRendererCss().then(css => vesktopCssNode!.textContent = css);
         VesktopNative.app.onRendererCssUpdate(newCss => {
             vesktopCssNode!.textContent = newCss;
         });
     }
 
-    IriscordNative.themes.getSystemValues().then(values => {
+    VencordNative.themes.getSystemValues().then(values => {
         const variables = Object.entries(values)
             .filter(([, v]) => !!v)
             .map(([k, v]) => `--${k}: ${v};`)
@@ -82,7 +81,7 @@ export function initStyles() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.documentElement.append(iriscordRootNode);
+    document.documentElement.append(vencordRootNode);
 }, { once: true });
 
 export function requireStyle(name: string) {
@@ -109,7 +108,7 @@ export function enableStyle(name: string) {
 
     if (!style.dom) {
         style.dom = document.createElement("style");
-        style.dom.dataset.iriscordName = style.name;
+        style.dom.dataset.vencordName = style.name;
     }
     compileStyle(style);
 
@@ -194,5 +193,3 @@ export const compileStyle = (style: Style) => {
             return className ? classNameToSelector(className) : match;
         });
 };
-
-

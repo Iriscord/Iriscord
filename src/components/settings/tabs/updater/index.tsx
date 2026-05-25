@@ -1,129 +1,175 @@
 /*
- * Iriscord, a modification for Discord's desktop app
- * Copyright (c) 2022 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Luacord — Onglet Updater dans les Settings
+ * Affiche la version actuelle, vérifie GitHub et permet de mettre à jour.
+ */
 
-import { useSettings } from "@api/Settings";
-import { Button } from "@components/Button";
-import { Card } from "@components/Card";
 import { Divider } from "@components/Divider";
-import { Flex } from "@components/Flex";
-import { FormSwitch } from "@components/FormSwitch";
-import { HeadingSecondary } from "@components/Heading";
+import { Heading } from "@components/Heading";
 import { Link } from "@components/Link";
 import { Paragraph } from "@components/Paragraph";
-import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
+import { SettingsTab, wrapTab } from "@components/settings";
 import { Margins } from "@utils/margins";
-import { classes } from "@utils/misc";
-import { useAwaiter } from "@utils/react";
-import { getRepo, isNewer, UpdateLogger } from "@utils/updater";
-import { Forms, React } from "@webpack/common";
+import { changes, checkForUpdates, getRepo, isOutdated, rebuild, update, UpdateLogger } from "@utils/updater";
+import { React, useState } from "@webpack/common";
 
-import gitHash from "~git-hash";
+import { Button } from "@components/Button";
+import { Card } from "@components/Card";
+import { Flex } from "@components/Flex";
+import { Span } from "@components/Span";
+import { Toasts, Alerts } from "@webpack/common";
 
-import { CommonProps, HashLink, Newer, Updatable } from "./Components";
+import { relaunch } from "@utils/native";
 
-function VesktopSection() {
-    if (!IS_VESKTOP) return null;
+// Version locale depuis package.json (injectée au build)
+declare const VERSION: string;
 
-    const [isVesktopOutdated] = useAwaiter<boolean>(VesktopNative.app.isOutdated, { fallbackValue: false });
+const REPO_URL = "https://github.com/luacordoff/luacord";
 
-    return (
-        <Flex className={Margins.bottom20} flexDirection="column" gap="1em">
-            <Card variant="info">
-                <HeadingSecondary>Vesktop & Iriscord</HeadingSecondary>
-                <Paragraph>Vesktop and Iriscord are two separate things. This updater is for Iriscord.</Paragraph>
-                <Paragraph className={Margins.top8}>
-                    You receive separate popups for Vesktop updates. You can also manually update by installing the <Link href="https://vesktop.dev/install">latest version</Link>.
-                </Paragraph>
-            </Card>
+function UpdaterTab() {
+    const [checking, setChecking] = useState(false);
+    const [downloading, setDownloading] = useState(false);
+    const [launching, setLaunching] = useState(false);
+    const [checked, setChecked] = useState(false);
+    const [outdated, setOutdated] = useState(false);
+    const [updateList, setUpdateList] = useState(changes ?? []);
+    const [error, setError] = useState<string | null>(null);
 
-            {isVesktopOutdated && (
-                <Card variant="warning">
-                    <HeadingSecondary>Vesktop Outdated</HeadingSecondary>
-                    <Flex flexDirection="column" gap="0.5em">
-                        <Paragraph>Your version of Vesktop is outdated!</Paragraph>
-                        <Button variant="link" onClick={() => VesktopNative.app.openUpdater()}>Open Vesktop Updater</Button>
-                    </Flex>
-                </Card>
-            )}
-        </Flex>
-    );
-}
+    async function handleCheck() {
+        setChecking(true);
+        setError(null);
+        try {
+            const hasUpdate = await checkForUpdates();
+            setOutdated(hasUpdate);
+            setUpdateList(changes ?? []);
+            setChecked(true);
 
-function Updater() {
-    const settings = useSettings(["autoUpdate", "autoUpdateNotification"]);
+            if (!hasUpdate) {
+                Toasts.show({
+                    message: "Tu es déjà sur la dernière version !",
+                    id: Toasts.genId(),
+                    type: Toasts.Type.SUCCESS,
+                    options: { position: Toasts.Position.BOTTOM }
+                });
+            }
+        } catch (e: any) {
+            UpdateLogger.error(e);
+            let detail: string | null = e?.message || e?.error?.message || (typeof e === "string" ? e : null);
+            // Strip any residual HTML and truncate to keep the UI clean
+            if (detail) {
+                detail = detail.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+                if (detail.length > 300) detail = detail.substring(0, 300) + "…";
+            }
+            setError(`Impossible de vérifier les mises à jour.${detail ? ` (${detail})` : " Vérifie ta connexion."}`);
+        } finally {
+            setChecking(false);
+        }
+    }
 
-    const [repo, err, repoPending] = useAwaiter(getRepo, {
-        fallbackValue: "Loading...",
-        onError: e => UpdateLogger.error("Failed to retrieve repo", err)
-    });
+    async function handleUpdate() {
+        setDownloading(true);
+        setError(null);
+        try {
+            // Update & build triggers our new ASAR overwrite
+            await update();
+            await rebuild();
+            
+            Toasts.show({
+                message: "Update successful! Restarting...",
+                id: Toasts.genId(),
+                type: Toasts.Type.SUCCESS,
+                options: { position: Toasts.Position.BOTTOM }
+            });
 
-    const commonProps: CommonProps = {
-        repo,
-        repoPending
-    };
+            setTimeout(() => {
+                relaunch();
+            }, 1500);
+        } catch (e: any) {
+            UpdateLogger.error(e);
+            setError("Update failed: " + e.message);
+            setDownloading(false);
+        }
+    }
 
     return (
         <SettingsTab>
-            <VesktopSection />
+            <Heading className={Margins.top16}>Luacord Updater</Heading>
+            <Paragraph className={Margins.bottom20}>
+                Check for new versions of Luacord. Updates can be installed automatically.
+            </Paragraph>
 
-            <FormSwitch
-                title="Automatically update"
-                description="Automatically update Iriscord without confirmation prompt"
-                value={settings.autoUpdate}
-                onChange={(v: boolean) => settings.autoUpdate = v}
-            />
-            <FormSwitch
-                title="Get notified when an automatic update completes"
-                description="Show a notification when Iriscord automatically updates"
-                value={settings.autoUpdateNotification}
-                onChange={(v: boolean) => settings.autoUpdateNotification = v}
-                disabled={!settings.autoUpdate}
-            />
-
-            <Forms.FormTitle tag="h5" className={Margins.top20}>Repo</Forms.FormTitle>
-
-            <Forms.FormText>
-                {repoPending
-                    ? repo
-                    : err
-                        ? "Failed to retrieve - check console"
-                        : (
-                            <Link href={repo}>
-                                {repo.split("/").slice(-2).join("/")}
+            {/* Version actuelle */}
+            <Card style={{ padding: "12px 16px", marginBottom: 12 }}>
+                <Flex style={{ alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                        <Span size="sm" color="text-subtle">Current Version</Span>
+                        <div>
+                            <Span size="md" weight="medium" color="text-strong">
+                                v{VERSION}
+                            </Span>
+                        </div>
+                    </div>
+                    <div>
+                        <Span size="sm" color="text-subtle">Website</Span>
+                        <div>
+                            <Link href="https://luacord.online" style={{ fontSize: 13 }}>
+                                luacord.online
                             </Link>
-                        )
-                }
-                {" "}
-                (<HashLink hash={gitHash} repo={repo} disabled={repoPending} />)
-            </Forms.FormText>
+                        </div>
+                    </div>
+                </Flex>
+            </Card>
 
-            <Divider className={classes(Margins.top16, Margins.bottom16)} />
+            {/* Error */}
+            {error && (
+                <Card style={{ padding: "10px 16px", marginBottom: 12, borderLeft: "3px solid var(--status-danger)" }}>
+                    <Span size="sm" color="text-danger">{error}</Span>
+                </Card>
+            )}
 
-            <Forms.FormTitle tag="h5">Updates</Forms.FormTitle>
+            {/* Résultat vérification */}
+            {checked && !error && (
+                outdated ? (
+                    <Card style={{ padding: "10px 16px", marginBottom: 12, borderLeft: "3px solid var(--status-warning)" }}>
+                        <Span size="sm" style={{ color: "var(--text-warning)" }}>
+                            {updateList[0]?.message ?? "A new update is available!"}
+                        </Span>
+                    </Card>
+                ) : (
+                    <Card style={{ padding: "10px 16px", marginBottom: 12, borderLeft: "3px solid var(--status-positive)" }}>
+                        <Span size="sm" style={{ color: "var(--text-positive)" }}>You are running the latest version ✓</Span>
+                    </Card>
+                )
+            )}
 
-            {isNewer
-                ? <Newer {...commonProps} />
-                : <Updatable {...commonProps} />
-            }
+            {/* Boutons */}
+            <Flex gap="8px" className={Margins.top8}>
+                <Button
+                    size="small"
+                    disabled={checking}
+                    onClick={handleCheck}
+                >
+                    {checking ? "Checking..." : "Check for Updates"}
+                </Button>
+
+                {outdated && (
+                    <Button
+                        size="small"
+                        variant="primary"
+                        onClick={handleUpdate}
+                        disabled={downloading}
+                    >
+                        {downloading ? "Installing..." : "🚀 Update Now (Automatic)"}
+                    </Button>
+                )}
+            </Flex>
+
+            <Divider className={Margins.top20} />
+
+            <Paragraph className={Margins.top16} style={{ fontSize: 12, opacity: 0.6 }}>
+                Clicking "Update Now" will automatically download the latest version and restart your client.
+            </Paragraph>
         </SettingsTab>
     );
 }
 
-export default IS_UPDATER_DISABLED
-    ? null
-    : wrapTab(Updater, "Updater");
+export default wrapTab(UpdaterTab, "Updater");

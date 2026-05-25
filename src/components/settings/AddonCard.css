@@ -39,8 +39,8 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
-    /* stylelint-disable-next-line property-no-unknown */
     box-orient: vertical;
+    color: var(--text-default);
 }
 
 .vc-addon-name-author {
@@ -52,7 +52,6 @@
     width: 100%;
     align-items: center;
     flex-grow: 1;
-    gap: 8px;
 }
 
 .vc-addon-author {
@@ -94,4 +93,15 @@
 .vc-addon-title:hover {
     overflow: visible;
     animation: vc-addon-title var(--duration) linear infinite;
+}
+
+.vc-addon-editable {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.vc-addon-footer {
+    font-size: small;
 }

@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 import ErrorBoundary from "@components/ErrorBoundary";
 import { Logger } from "@utils/Logger";
 import { IconComponent } from "@utils/types";
-import { Channel, Message } from "@iriscord/discord-types";
+import { Channel, Message } from "@vencord/discord-types";
 import type { ComponentType, MouseEventHandler } from "react";
 
 import { useSettings } from "./Settings";
@@ -64,10 +64,16 @@ export function removeMessagePopoverButton(identifier: string) {
     MessagePopoverButtonMap.delete(identifier);
 }
 
-function IriscordPopoverButtons(props: { Component: React.ComponentType<MessagePopoverButtonItem>, message: Message; }) {
+function VencordPopoverButtons(props: { Component: React.ComponentType<MessagePopoverButtonItem>, message: Message; }) {
     const { Component, message } = props;
 
     const { messagePopoverButtons } = useSettings(["uiElements.messagePopoverButtons.*"]).uiElements;
+
+    // ── Stealth Mode Bypass ──
+    try {
+        const { isStealthModeEnabled } = require("./HeaderBar");
+        if (isStealthModeEnabled()) return null;
+    } catch { }
 
     const elements = Array.from(MessagePopoverButtonMap.entries())
         .filter(([key]) => messagePopoverButtons[key]?.enabled !== false)
@@ -95,5 +101,5 @@ export function _buildPopoverElements(
     Component: React.ComponentType<MessagePopoverButtonItem>,
     message: Message
 ) {
-    return <IriscordPopoverButtons Component={Component} message={message} />;
+    return <VencordPopoverButtons Component={Component} message={message} />;
 }

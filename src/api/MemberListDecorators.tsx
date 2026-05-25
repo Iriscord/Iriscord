@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,17 +17,17 @@
 */
 
 import ErrorBoundary from "@components/ErrorBoundary";
-import { Channel, User } from "@iriscord/discord-types";
+import { Channel, User } from "@vencord/discord-types";
 import { JSX } from "react";
 
-interface DecoratorProps {
+export type DecoratorProps = {
     type: "guild" | "dm";
     user: User;
     /** only present when this is a DM list item */
     channel: Channel;
     /** only present when this is a guild list item */
     isOwner: boolean;
-}
+};
 
 export type MemberListDecoratorFactory = (props: DecoratorProps) => JSX.Element | null;
 type OnlyIn = "guilds" | "dms";

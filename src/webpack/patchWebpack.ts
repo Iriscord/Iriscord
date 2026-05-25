@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated, Nuckyz, and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -10,7 +10,7 @@ import { makeLazy } from "@utils/lazy";
 import { Logger } from "@utils/Logger";
 import { interpolateIfDefined } from "@utils/misc";
 import { Patch, PatchReplacement } from "@utils/types";
-import { WebpackRequire } from "@iriscord/discord-types/webpack";
+import { WebpackRequire } from "@vencord/discord-types/webpack";
 
 import { AnyModuleFactory, AnyWebpackRequire, MaybePatchedModuleFactory, PatchedModuleFactory } from "./types";
 import { _blacklistBadModules, _initWebpack, factoryListeners, findModuleFactory, moduleListeners, waitForSubscriptions, wreq } from "./webpack";
@@ -306,6 +306,7 @@ function proxyFactoryAndUpdateExisting(moduleFactories: AnyWebpackRequire["m"], 
  */
 function updateExistingFactory(moduleFactories: AnyWebpackRequire["m"], moduleId: PropertyKey, newFactory: AnyModuleFactory, newProxiedFactory: AnyModuleFactory, ignoreExistingInTarget: boolean) {
     let existingFactory: AnyModuleFactory | undefined;
+    let moduleFactoriesWithFactory: AnyWebpackRequire["m"] | undefined;
     for (const wreq of allWebpackInstances) {
         const instanceModuleFactories = wreq.m[SYM_ORIGINAL_MODULE_FACTORIES] ?? wreq.m;
 
@@ -315,6 +316,7 @@ function updateExistingFactory(moduleFactories: AnyWebpackRequire["m"], moduleId
 
         if (Object.hasOwn(wreq.m, moduleId)) {
             existingFactory = wreq.m[moduleId]; // Must use wreq.m here instead of instanceModuleFactories to use our proxy in case the module factories are already proxied.
+            moduleFactoriesWithFactory = instanceModuleFactories;
             break;
         }
     }

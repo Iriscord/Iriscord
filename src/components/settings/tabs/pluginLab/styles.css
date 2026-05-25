@@ -1,7 +1,0 @@
-.vc-plugin-lab-editor textarea {
-    font-family: var(--font-code);
-    font-size: 13px;
-    line-height: 1.45;
-    min-height: 320px;
-    resize: vertical;
-}

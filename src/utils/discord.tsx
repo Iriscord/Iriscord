@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,13 +17,14 @@
 */
 
 import type { MessageObject } from "@api/MessageEvents";
-import type { Channel, CloudUpload, Guild, GuildFeatures, MediaModalItem, MediaModalProps, Message, User } from "@iriscord/discord-types";
-import { ChannelActionCreators, ChannelStore, ComponentDispatch, Constants, FluxDispatcher, GuildStore, i18n, InviteActions, MessageActions, openMediaModal, RestAPI, SelectedChannelStore, SelectedGuildStore, Toasts, UserProfileActions, UserProfileStore, UserSettingsActionCreators, UserUtils } from "@webpack/common";
+import type { Channel, CloudUpload, Guild, GuildFeatures, Message, User } from "@vencord/discord-types";
+import { ChannelActionCreators, ChannelStore, ComponentDispatch, Constants, FluxDispatcher, GuildStore, i18n, InviteActions, MessageActions, RestAPI, SelectedChannelStore, SelectedGuildStore, Toasts, UserProfileActions, UserProfileStore, UserSettingsActionCreators, UserUtils } from "@webpack/common";
 import { Except } from "type-fest";
 
 import { copyToClipboard } from "./clipboard";
 import { runtimeHashMessageKey } from "./intlHash";
 import { Logger } from "./Logger";
+import { MediaModalItem, MediaModalProps, openMediaModal } from "./modal";
 
 const IntlManagerLogger = new Logger("IntlManager");
 
@@ -123,7 +124,7 @@ export async function copyWithToast(text: string, toastMessage = "Copied to clip
     });
 }
 
-interface MessageOptions {
+export interface MessageOptions {
     messageReference: Message["messageReference"];
     allowedMentions: {
         parse: string[];
@@ -204,9 +205,9 @@ interface FetchUserProfileOptions {
 /**
  * Fetch a user's profile
  */
-export async function fetchUserProfile(id: string, options?: FetchUserProfileOptions) {
+export async function fetchUserProfile(id: string, options?: FetchUserProfileOptions, cache = true) {
     const cached = UserProfileStore.getUserProfile(id);
-    if (cached) return cached;
+    if (cached && cache) return cached;
 
     FluxDispatcher.dispatch({ type: "USER_PROFILE_FETCH_START", userId: id });
 

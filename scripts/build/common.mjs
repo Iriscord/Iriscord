@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,92 +23,36 @@ import "../checkNodeVersion.js";
 
 import { exec, execSync } from "child_process";
 import esbuild, { build, context } from "esbuild";
-import { constants as FsConstants, readFileSync, existsSync } from "fs";
+import { constants as FsConstants, readFileSync } from "fs";
 import { access, readdir, readFile } from "fs/promises";
 import { minify as minifyHtml } from "html-minifier-terser";
-import { optimize as optimizeSvg } from 'svgo';
-import { join, relative, resolve } from "path";
+import { dirname, join, relative, resolve } from "path";
+import { fileURLToPath } from "url";
 import { promisify } from "util";
-import os from "os";
 
 import { getPluginTarget } from "../utils.mjs";
-import { builtinModules } from "module";
 
-export function getAppDataUserPluginsDir() {
-    if (process.env.IRISCORD_USER_DATA_DIR || process.env.IRISCORD_USER_DATA_DIR) {
-        const dataDir = process.env.IRISCORD_USER_DATA_DIR || process.env.IRISCORD_USER_DATA_DIR;
-        const devSrc = join(dataDir, "src", "userplugins");
-        if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
-            return devSrc;
-        }
-        return join(dataDir, "userplugins");
-    }
-
-    const base = process.env.DISCORD_USER_DATA_DIR
-        ? join(process.env.DISCORD_USER_DATA_DIR, "..")
-        : (() => {
-            if (process.platform === "win32") {
-                return process.env.APPDATA || join(os.homedir(), "AppData", "Roaming");
-            }
-            if (process.platform === "darwin") {
-                return join(os.homedir(), "Library", "Application Support");
-            }
-            return join(os.homedir(), ".config");
-        })();
-
-    let dataDir = join(base, "Iriscord");
-    if (!existsSync(dataDir)) {
-        const legacy = join(base, "Iriscord");
-        if (existsSync(legacy)) {
-            dataDir = legacy;
-        } else {
-            const legacyAlt = join(base, "IriscordData");
-            if (existsSync(legacyAlt)) {
-                dataDir = legacyAlt;
-            }
-        }
-    }
-
-    const devSrc = join(dataDir, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
-        return devSrc;
-    }
-    return join(dataDir, "userplugins");
-}
-
-/** @type {import("../../package.json")} */
-const PackageJSON = JSON.parse(readFileSync("package.json", "utf-8"));
+const PackageJSON = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../package.json"), "utf-8"));
 
 export const VERSION = PackageJSON.version;
 // https://reproducible-builds.org/docs/source-date-epoch/
-export const BUILD_TIMESTAMP = Number(process.env.SOURCE_DATE_EPOCH) || Date.now();
+export const BUILD_TIMESTAMP = Number(process.env.SOURCE_DATE_EPOCH) * 1000 || Date.now();
 
 export const watch = process.argv.includes("--watch");
 export const IS_DEV = watch || process.argv.includes("--dev");
 export const IS_REPORTER = process.argv.includes("--reporter");
 export const IS_ANTI_CRASH_TEST = process.argv.includes("--anti-crash-test");
 export const IS_STANDALONE = process.argv.includes("--standalone");
+export const IS_COMPANION_TEST = IS_REPORTER && process.argv.includes("--companion-test");
+if (!IS_COMPANION_TEST && process.argv.includes("--companion-test"))
+    console.error("--companion-test must be run with --reporter for any effect");
 
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
-
-function resolveGitHash() {
-    const fromEnv = process.env.IRISCORD_HASH || process.env.IRISCORD_HASH;
-    if (fromEnv) return fromEnv.trim();
-    try {
-        return execSync("git rev-parse --short HEAD", {
-            encoding: "utf-8",
-            stdio: ["ignore", "pipe", "ignore"]
-        }).trim();
-    } catch {
-        return "local";
-    }
-}
-
-export const gitHash = resolveGitHash();
+export const gitHash = process.env.LUACORD_HASH || execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
 
 export const banner = {
     js: `
-// Iriscord ${gitHash}
+// Luacord ${gitHash}
 // Standalone: ${IS_STANDALONE}
 // Platform: ${IS_STANDALONE === false ? process.platform : "Universal"}
 // Updater Disabled: ${IS_UPDATER_DISABLED}
@@ -188,7 +132,7 @@ export const makeAllPackagesExternalPlugin = {
 };
 
 /**
- * @type {(kind: "web" | "discordDesktop" | "vesktop") => import("esbuild").Plugin}
+ * @type {(kind: "web" | "discordDesktop" | "vesktop" | "equibop") => import("esbuild").Plugin}
  */
 export const globPlugins = kind => ({
     name: "glob-plugins",
@@ -202,123 +146,67 @@ export const globPlugins = kind => ({
         });
 
         build.onLoad({ filter, namespace: "import-plugins" }, async () => {
-            // Iriscord: no stock plugins — only core/API shims + manual userplugins
-            const pluginDirs = ["plugins/_api", "plugins/_core", "userplugins"];
-            const allowedCorePlugins = new Set([
-                "settings.tsx",
-                "noTrack.ts",
-                "concatenatedComponentExtractor.tsx"
-            ]);
+            const pluginDirs = ["plugins/_api", "plugins/_core", "plugins", "userplugins", "luacordplugins", "luacordplugins/_api"];
             let code = "";
             let pluginsCode = "\n";
             let metaCode = "\n";
             let excludedCode = "\n";
             let i = 0;
-
-            const pluginsToLoad = [];
             for (const dir of pluginDirs) {
                 const userPlugin = dir === "userplugins";
 
-                if (userPlugin) {
-                    // Check local ./src/userplugins
-                    const localDir = `./src/${dir}`;
-                    if (await exists(localDir)) {
-                        const files = await readdir(localDir, { withFileTypes: true });
-                        for (const file of files) {
-                            pluginsToLoad.push({
-                                dir,
-                                fullDir: localDir,
-                                file,
-                                userPlugin: true,
-                                isAbsolute: false
-                            });
+                const fullDir = `./src/${dir}`;
+                if (!await exists(fullDir)) continue;
+                const files = await readdir(fullDir, { withFileTypes: true });
+                for (const file of files) {
+                    const fileName = file.name;
+                    if (fileName.startsWith("_") || fileName.startsWith(".")) continue;
+                    if (fileName === "index.ts") continue;
+                    if (fileName.endsWith(".ini")) continue;
+
+                    const isDir = file.isDirectory();
+                    const isSupportedFile = /\.(tsx?|jsx?|css)$/.test(fileName);
+                    if (!isDir && !isSupportedFile) continue;
+
+                    const target = getPluginTarget(fileName);
+
+                    if (target && !IS_REPORTER) {
+                        const excluded =
+                            (target === "dev" && !IS_DEV) ||
+                            (target === "web" && kind === "discordDesktop") ||
+                            (target === "desktop" && kind === "web") ||
+                            (target === "discordDesktop" && kind !== "discordDesktop") ||
+                            (target === "vesktop" && kind !== "vesktop" && kind !== "equibop") ||
+                            (target === "equibop" && kind !== "equibop" && kind !== "vesktop");
+
+                        if (excluded) {
+                            const name = await resolvePluginName(fullDir, file);
+                            excludedCode += `${JSON.stringify(name)}:${JSON.stringify(target)},\n`;
+                            continue;
                         }
                     }
 
-                    // Check AppData plugins folder
-                    const appDataDir = getAppDataUserPluginsDir();
-                    if (await exists(appDataDir)) {
-                        const files = await readdir(appDataDir, { withFileTypes: true });
-                        for (const file of files) {
-                            if (pluginsToLoad.some(p => p.file.name === file.name)) continue;
-                            pluginsToLoad.push({
-                                dir,
-                                fullDir: appDataDir,
-                                file,
-                                userPlugin: true,
-                                isAbsolute: true
-                            });
-                        }
+                    const folderName = `src/${dir}/${fileName}`;
+                    const mod = `p${i}`;
+
+                    if (userPlugin && fileName.endsWith(".css")) {
+                        const pluginName = fileName.replace(/\.css$/, "");
+                        code += `import ${mod}_css from "./${dir}/${fileName}";\n`;
+                        code += `const ${mod} = { name: ${JSON.stringify(pluginName)}, description: "User style loaded as a plugin", authors: [{ name: "User", id: 0n }], start() {}, stop() {} };\n`;
+                    } else {
+                        code += `import ${mod} from "./${dir}/${fileName.replace(/\.tsx?$/, "")}";\n`;
                     }
-                } else {
-                    const fullDir = `./${dir}`;
-                    if (!await exists(fullDir)) continue;
-                    const files = await readdir(fullDir, { withFileTypes: true });
-                    for (const file of files) {
-                        pluginsToLoad.push({
-                            dir,
-                            fullDir,
-                            file,
-                            userPlugin: false,
-                            isAbsolute: false
-                        });
-                    }
+
+                    pluginsCode += `[${mod}.name]:${mod},\n`;
+                    metaCode += `[${mod}.name]:${JSON.stringify({ folderName, userPlugin })},\n`;
+                    i++;
                 }
             }
-
-            for (const { dir, fullDir, file, userPlugin, isAbsolute } of pluginsToLoad) {
-                const fileName = file.name;
-                if (fileName.startsWith("_") || fileName.startsWith(".")) continue;
-                if (fileName === "index.ts") continue;
-                if (/\.(md|txt|json)$/i.test(fileName)) continue;
-                if (dir === "plugins/_core" && !allowedCorePlugins.has(fileName)) continue;
-
-                const target = getPluginTarget(fileName);
-
-                if (target && !IS_REPORTER) {
-                    const excluded =
-                        (target === "dev" && !IS_DEV) ||
-                        (target === "web" && kind === "discordDesktop") ||
-                        (target === "desktop" && kind === "web") ||
-                        (target === "discordDesktop" && kind !== "discordDesktop") ||
-                        (target === "vesktop" && kind !== "vesktop");
-
-                    if (excluded) {
-                        const name = await resolvePluginName(fullDir, file);
-                        excludedCode += `${JSON.stringify(name)}:${JSON.stringify(target)},\n`;
-                        continue;
-                    }
-                }
-
-                const folderName = isAbsolute
-                    ? `userplugins/${fileName}`
-                    : `src/${dir}/${fileName}`.replace(/^src\/plugins\//, "");
-
-                const mod = `p${i}`;
-                const importPath = isAbsolute
-                    ? join(fullDir, fileName).replace(/\\/g, "/")
-                    : `./${dir}/${fileName.replace(/\.tsx?$/, "")}`;
-
-                code += `import ${mod} from "${importPath}";\n`;
-                pluginsCode += `[${mod}.name]:${mod},\n`;
-                metaCode += `[${mod}.name]:${JSON.stringify({ folderName, userPlugin })},\n`;
-                i++;
-            }
-
             code += `export default {${pluginsCode}};export const PluginMeta={${metaCode}};export const ExcludedPlugins={${excludedCode}};`;
-
-            const watchDirs = pluginDirs.map(d =>
-                d.startsWith("plugins/") ? resolve(d) : resolve("src", d)
-            );
-            const appDataDir = getAppDataUserPluginsDir();
-            if (await exists(appDataDir)) {
-                watchDirs.push(resolve(appDataDir));
-            }
-
             return {
                 contents: code,
-                resolveDir: ".",
-                watchDirs,
+                resolveDir: "./src",
+                watchDirs: pluginDirs.map(d => resolve("src", d)),
             };
         });
     }
@@ -351,20 +239,13 @@ export const gitRemotePlugin = {
             namespace: "git-remote", path: args.path
         }));
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
-            let remote = process.env.IRISCORD_REMOTE || process.env.IRISCORD_REMOTE;
+            let remote = process.env.LUACORD_REMOTE;
             if (!remote) {
-                try {
-                    const res = await promisify(exec)("git remote get-url origin", {
-                        encoding: "utf-8",
-                        stdio: ["ignore", "pipe", "ignore"]
-                    });
-                    remote = res.stdout.trim()
-                        .replace("https://github.com/", "")
-                        .replace("git@github.com:", "")
-                        .replace(/.git$/, "");
-                } catch {
-                    remote = "iriscord/iriscord";
-                }
+                const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
+                remote = res.stdout.trim()
+                    .replace("https://github.com/", "")
+                    .replace("git@github.com:", "")
+                    .replace(/.git$/, "");
             }
 
             return { contents: `export default "${remote}"` };
@@ -412,12 +293,6 @@ export const fileUrlPlugin = {
                         removeStyleLinkTypeAttributes: true,
                         useShortDoctype: true
                     });
-                } else if (path.endsWith(".svg")) {
-                    content = optimizeSvg(await readFile(path, "utf-8"), {
-                        datauri: base64 ? "base64" : void 0,
-                        multipass: true,
-                        floatPrecision: 2,
-                    }).data;
                 } else if (/[mc]?[jt]sx?$/.test(path)) {
                     const res = await esbuild.build({
                         entryPoints: [path],
@@ -440,7 +315,20 @@ export const fileUrlPlugin = {
     }
 };
 
-const styleModule = readFileSync("./scripts/build/module/style.js", "utf-8");
+/**
+ * @type {(filter: RegExp, message: string) => import("esbuild").Plugin}
+ */
+export const banImportPlugin = (filter, message) => ({
+    name: "ban-imports",
+    setup: build => {
+        build.onResolve({ filter }, () => {
+            return { errors: [{ text: message }] };
+        });
+    }
+});
+
+const styleModule = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "module/style.js"), "utf-8");
+
 /**
  * @type {import("esbuild").Plugin}
  */
@@ -466,42 +354,6 @@ export const stylePlugin = {
 };
 
 /**
- * @type {(filter: RegExp, message: string) => import("esbuild").Plugin}
- */
-export const banImportPlugin = (filter, message) => ({
-    name: "ban-imports",
-    setup: build => {
-        build.onResolve({ filter }, () => {
-            return { errors: [{ text: message }] };
-        });
-    }
-});
-
-/**
- * @type {import("esbuild").Plugin}
- */
-export const resolveFromProjectNodeModulesPlugin = {
-    name: "resolve-from-project-node-modules",
-    setup(build) {
-        const filter = /^[^./]/;
-        build.onResolve({ filter }, async args => {
-            if (args.pluginData?.redirected) return null;
-
-            const resolveDirLower = args.resolveDir.toLowerCase();
-            const cwdLower = process.cwd().toLowerCase();
-            if (!resolveDirLower.startsWith(cwdLower)) {
-                return await build.resolve(args.path, {
-                    resolveDir: resolve("src"),
-                    kind: args.kind,
-                    pluginData: { redirected: true }
-                });
-            }
-            return null;
-        });
-    }
-};
-
-/**
  * @type {import("esbuild").BuildOptions}
  */
 export const commonOpts = {
@@ -511,22 +363,28 @@ export const commonOpts = {
     sourcemap: watch ? "inline" : "external",
     legalComments: "linked",
     banner,
-    plugins: [resolveFromProjectNodeModulesPlugin, fileUrlPlugin, gitHashPlugin, gitRemotePlugin, stylePlugin],
+    plugins: [fileUrlPlugin, gitHashPlugin, gitRemotePlugin, stylePlugin],
     external: ["~plugins", "~git-hash", "~git-remote", "/assets/*"],
-    inject: ["./scripts/build/inject/react.mjs"],
+    inject: [join(dirname(fileURLToPath(import.meta.url)), "inject/react.mjs")],
     jsx: "transform",
-    jsxFactory: "IriscordCreateElement",
-    jsxFragment: "IriscordFragment",
-    tsconfig: resolve("tsconfig.json")
+    jsxFactory: "VencordCreateElement",
+    jsxFragment: "VencordFragment",
+    alias: {
+        "@main": "./src/main",
+        "@api": "./src/api",
+        "@components": "./src/components",
+        "@utils": "./src/utils",
+        "@debug": "./src/debug",
+        "@plugins": "./src/plugins",
+        "@shared": "./src/shared",
+        "@webpack/common": "./src/webpack/common",
+        "@webpack/patcher": "./src/webpack/patchWebpack",
+        "@webpack": "./src/webpack/webpack",
+        "@luacordplugins": "./src/luacordplugins",
+    }
 };
 
-const escapedBuiltinModules = builtinModules
-    .map(m => m.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"))
-    .join("|");
-const builtinModuleRegex = new RegExp(`^(node:)?(${escapedBuiltinModules})$`);
-
 export const commonRendererPlugins = [
-    banImportPlugin(builtinModuleRegex, "Cannot import node inbuilt modules in browser code. You need to use a native.ts file"),
     banImportPlugin(/^react$/, "Cannot import from react. React and hooks should be imported from @webpack/common"),
     banImportPlugin(/^electron(\/.*)?$/, "Cannot import electron in browser code. You need to use a native.ts file"),
     banImportPlugin(/^ts-pattern$/, "Cannot import from ts-pattern. match and P should be imported from @webpack/common"),

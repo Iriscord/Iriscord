@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,18 +32,14 @@ function isNewer($new: string, old: string) {
 }
 
 function patchLatest() {
-    if (process.env.DISABLE_UPDATER_AUTO_PATCHING) return;
-
     try {
         const currentAppPath = dirname(process.execPath);
         const currentVersion = basename(currentAppPath);
         const discordPath = join(currentAppPath, "..");
 
-        const latestVersion = readdirSync(discordPath).reduce((prev, curr) => {
-            return (curr.startsWith("app-") && isNewer(curr, prev))
-                ? curr
-                : prev;
-        }, currentVersion as string);
+        const latestVersion = readdirSync(discordPath)
+            .filter(name => name.startsWith("app-") && statSync(join(discordPath, name)).isDirectory())
+            .reduce((prev, curr) => isNewer(curr, prev) ? curr : prev, currentVersion as string);
 
         if (latestVersion === currentVersion) return;
 
@@ -53,7 +49,7 @@ function patchLatest() {
 
         if (!existsSync(app) || statSync(app).isDirectory()) return;
 
-        console.info("[Iriscord] Detected Host Update. Repatching...");
+        console.info("[Luacord] Detected Host Update. Repatching...");
 
         renameSync(app, _app);
         mkdirSync(app);
@@ -61,9 +57,10 @@ function patchLatest() {
             name: "discord",
             main: "index.js"
         }));
-        writeFileSync(join(app, "index.js"), `require(${JSON.stringify(join(__dirname, "patcher.js"))});`);
+        // Chemin relatif pour la portabilité (fonctionne sur n'importe quelle machine)
+        writeFileSync(join(app, "index.js"), `// Luacord repatch\n"use strict";\nconst path = require("path");\nrequire(path.join(__dirname, "..", "app", "dist", "desktop", "patcher.js"));`);
     } catch (err) {
-        console.error("[Iriscord] Failed to repatch latest host update", err);
+        console.error("[Luacord] Failed to repatch latest host update", err);
     }
 }
 

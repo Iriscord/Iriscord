@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2025 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -14,6 +14,7 @@ export const ImageSrc = [...ConnectSrc, "img-src"];
 export const CssSrc = ["style-src", "font-src"];
 export const ImageAndCssSrc = [...ImageSrc, ...CssSrc];
 export const ImageScriptsAndCssSrc = [...ImageAndCssSrc, "script-src", "worker-src"];
+export const CSPSrc = ["style-src", "connect-src", "img-src", "frame-src", "font-src", "media-src", "worker-src"];
 
 // Plugins can whitelist their own domains by importing this object in their native.ts
 // script and just adding to it. But generally, you should just edit this file instead
@@ -27,6 +28,8 @@ export const CspPolicies: PolicyMap = {
     "*.github.io": ImageAndCssSrc, // GitHub pages, used by most themes
     "github.com": ImageAndCssSrc, // GitHub content (stuff uploaded to markdown forms), used by most themes
     "raw.githubusercontent.com": ImageAndCssSrc, // GitHub raw, used by some themes
+    "*.raw.githubusercontent.com": ImageAndCssSrc,
+    "github-production-user-asset-6210df.s3.amazonaws.com": CSPSrc, // GitHub video assets
     "*.gitlab.io": ImageAndCssSrc, // GitLab pages, used by some themes
     "gitlab.com": ImageAndCssSrc, // GitLab raw, used by some themes
     "*.codeberg.page": ImageAndCssSrc, // Codeberg pages, used by some themes
@@ -43,19 +46,25 @@ export const CspPolicies: PolicyMap = {
     "*.tenor.com": ImageSrc, // Tenor, used by some themes
     "files.catbox.moe": ImageAndCssSrc, // Catbox, used by some themes
 
-    "cdn.discordapp.com": ImageAndCssSrc, // Discord CDN, used by Iriscord and some themes to load media
+    "cdn.discordapp.com": ImageAndCssSrc, // Discord CDN, used by Vencord and some themes to load media
     "media.discordapp.net": ImageSrc, // Discord media CDN, possible alternative to Discord CDN
 
-    // CDNs used for some things by Iriscord.
+    // CDNs used for some things by Vencord.
     // FIXME: we really should not be using CDNs anymore
     "cdnjs.cloudflare.com": ImageScriptsAndCssSrc,
     "cdn.jsdelivr.net": ImageScriptsAndCssSrc,
 
     // Function Specific
-    "api.github.com": ConnectSrc, // used for updating Iriscord itself
+    // Google Speech API - needed for SpeechRecognition (VoiceDictation plugin)
+    "*.speech.googleapis.com": ConnectSrc,
+    "speech.googleapis.com": ConnectSrc,
+    "www.google.com": ConnectSrc,
+    "*.google.com": ConnectSrc,
+
+    "api.github.com": ConnectSrc, // used for updating Vencord itself
     "ws.audioscrobbler.com": ConnectSrc, // Last.fm API
     "translate-pa.googleapis.com": ConnectSrc, // Google Translate API
-    "*.iriscord.dev": ImageSrc, // VenCloud (api.iriscord.dev) and Badges (badges.iriscord.dev)
+    "*.vencord.dev": ImageSrc, // VenCloud (api.vencord.dev) and Badges (badges.vencord.dev)
     "manti.vendicated.dev": ImageSrc, // ReviewDB API
     "decor.fieryflames.dev": ConnectSrc, // Decor API
     "ugc.decor.fieryflames.dev": ImageSrc, // Decor CDN
@@ -63,6 +72,11 @@ export const CspPolicies: PolicyMap = {
     "dearrow-thumb.ajay.app": ImageSrc, // Dearrow Thumbnail CDN
     "usrbg.is-hardly.online": ImageSrc, // USRBG API
     "icons.duckduckgo.com": ImageSrc, // DuckDuckGo Favicon API (Reverse Image Search)
+
+    // SoundCord Player
+    "*.sndcdn.com": CSPSrc,
+    "soundcloud.com": CSPSrc,
+    "*.soundcloud.com": CSPSrc,
 };
 
 const findHeader = (headers: PolicyMap, headerName: Lowercase<string>) => {
@@ -87,11 +101,22 @@ const stringifyPolicy = (policy: PolicyMap): string =>
         .map(directive => directive.flat().join(" "))
         .join("; ");
 
-
 const patchCsp = (headers: PolicyMap) => {
     const reportOnlyHeader = findHeader(headers, "content-security-policy-report-only");
     if (reportOnlyHeader)
         delete headers[reportOnlyHeader];
+
+    const permissionsPolicyHeader = findHeader(headers, "permissions-policy");
+    if (permissionsPolicyHeader) delete headers[permissionsPolicyHeader];
+
+    const permissionsPolicyReportOnlyHeader = findHeader(headers, "permissions-policy-report-only");
+    if (permissionsPolicyReportOnlyHeader) delete headers[permissionsPolicyReportOnlyHeader];
+
+    const featurePolicyHeader = findHeader(headers, "feature-policy");
+    if (featurePolicyHeader) delete headers[featurePolicyHeader];
+
+    const featurePolicyReportOnlyHeader = findHeader(headers, "feature-policy-report-only");
+    if (featurePolicyReportOnlyHeader) delete headers[featurePolicyReportOnlyHeader];
 
     const header = findHeader(headers, "content-security-policy");
 
@@ -104,13 +129,13 @@ const patchCsp = (headers: PolicyMap) => {
         };
 
         pushDirective("style-src", "'unsafe-inline'");
-        // we could make unsafe-inline safe by using strict-dynamic with a random nonce on our Iriscord loader script https://content-security-policy.com/strict-dynamic/
+        // we could make unsafe-inline safe by using strict-dynamic with a random nonce on our Vencord loader script https://content-security-policy.com/strict-dynamic/
         // HOWEVER, at the time of writing (24 Jan 2025), Discord is INSANE and also uses unsafe-inline
         // Once they stop using it, we also should
         pushDirective("script-src", "'unsafe-inline'", "'unsafe-eval'");
 
         for (const directive of ["style-src", "connect-src", "img-src", "font-src", "media-src", "worker-src"]) {
-            pushDirective(directive, "blob:", "data:", "iriscord:", "vesktop:");
+            pushDirective(directive, "blob:", "data:", "vencord:", "vesktop:", "equicord:", "equibop:", "https://*.githubusercontent.com", "https://*.amazonaws.com");
         }
 
         for (const [host, directives] of Object.entries(NativeSettings.store.customCspRules)) {
@@ -132,7 +157,7 @@ const patchCsp = (headers: PolicyMap) => {
 export function initCsp() {
     session.defaultSession.webRequest.onHeadersReceived(({ responseHeaders, resourceType }, cb) => {
         if (responseHeaders) {
-            if (resourceType === "mainFrame")
+            if (resourceType === "mainFrame" || resourceType === "subFrame")
                 patchCsp(responseHeaders);
 
             // Fix hosts that don't properly set the css content type, such as

@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-export const IRISCORD_FILES = [
-    IS_DISCORD_DESKTOP ? "patcher.js" : "iriscordDesktopMain.js",
-    IS_DISCORD_DESKTOP ? "preload.js" : "iriscordDesktopPreload.js",
-    IS_DISCORD_DESKTOP ? "renderer.js" : "iriscordDesktopRenderer.js",
-    IS_DISCORD_DESKTOP ? "renderer.css" : "iriscordDesktopRenderer.css",
-];
+export const ASAR_FILE = IS_VESKTOP ? "vesktop.asar" : IS_EQUIBOP ? "equibop.asar" : "desktop.asar";
 
 export function serializeErrors(func: (...args: any[]) => any) {
     return async function () {

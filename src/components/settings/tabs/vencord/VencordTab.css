@@ -1,0 +1,144 @@
+:root {
+    --vc-donatebutton: #ffc1cbc2;
+    --vc-donatebutton-secondary: #f7536fe5;
+}
+
+.vc-donatebutton {
+    background-color: var(--background-base-low) !important;
+    border-color: var(--vc-donatebutton) !important;
+    filter: brightness(1);
+    border-width: .1rem !important;
+    border-style: solid !important;
+}
+
+.vc-donatebutton:hover {
+    background-color: var(--vc-donatebutton) !important;
+    border-color: transparent !important;
+}
+
+
+.vc-joindiscordbutton {
+    background-color: var(--channeltextarea-background) !important;
+}
+
+.vc-joindiscordbutton:hover {
+    background-color: var(--redesign-button-tertiary-pressed-background) !important;
+}
+
+.vc-settings-card-buttons {
+    display: flex;
+    gap: 1em !important;
+    margin-left: .2rem;
+    margin-bottom: .2rem;
+}
+
+.vc-settingbuttons {
+    border-radius: 5px !important;
+}
+
+.form-switch-warning {
+    font-size: 16px;
+    background-color: rgb(240 71 71 / 10%);
+    color: rgb(240 71 71);
+    border: 1px solid rgb(240 71 71 / 60%);
+    border-radius: 4px;
+    font-weight: 500;
+    padding: 6px 10px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.vc-vencord-tab-settings-link {
+    color: var(--text-link);
+    display: inline-block;
+}
+
+/* Beautiful Quick Actions Grid - Discord UI Style */
+.vc-luacord-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.vc-luacord-quick-actions > * {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-tertiary);
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--header-primary);
+    min-height: 48px;
+}
+
+.vc-luacord-quick-actions > *:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--background-modifier-accent);
+}
+
+.vc-luacord-quick-actions > *:active {
+    transform: scale(0.98);
+}
+
+/* Icon styling */
+.vc-luacord-quick-actions > * svg {
+    width: 20px;
+    height: 20px;
+    color: var(--interactive-normal);
+}
+
+/* Special styling for DEV Team button (gold) */
+.vc-luacord-quick-actions > *:nth-child(4) {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+}
+
+.vc-luacord-quick-actions > *:nth-child(4):hover {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.vc-luacord-quick-actions > *:nth-child(4) svg {
+    color: #ffd700;
+}
+
+/* Special styling for Luacord Server button (green) */
+.vc-luacord-quick-actions > *:nth-child(5) {
+    background: rgba(87, 242, 135, 0.1);
+    border-color: rgba(87, 242, 135, 0.3);
+    color: #57f287;
+}
+
+.vc-luacord-quick-actions > *:nth-child(5):hover {
+    background: rgba(87, 242, 135, 0.15);
+    border-color: rgba(87, 242, 135, 0.5);
+}
+
+.vc-luacord-quick-actions > *:nth-child(5) svg {
+    color: #57f287;
+}
+
+/* Responsive - 2 columns on smaller screens */
+@media (max-width: 768px) {
+    .vc-luacord-quick-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsive - 1 column on mobile */
+@media (max-width: 480px) {
+    .vc-luacord-quick-actions {
+        grid-template-columns: 1fr;
+    }
+}

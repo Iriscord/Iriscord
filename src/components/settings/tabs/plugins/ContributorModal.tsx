@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2023 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -7,15 +7,19 @@
 import "./ContributorModal.css";
 
 import { useSettings } from "@api/Settings";
+import ErrorBoundary from "@components/ErrorBoundary";
+import { HeadingPrimary } from "@components/Heading";
 import { Link } from "@components/Link";
-import { DevsById } from "@utils/constants";
+import { Paragraph } from "@components/Paragraph";
+import { EquicordDevsById, VencordDevsById } from "@utils/constants";
 import { classNameFactory } from "@utils/css";
 import { fetchUserProfile } from "@utils/discord";
-import { classes, pluralise } from "@utils/misc";
-import { RenderModalProps, User } from "@iriscord/discord-types";
-import { Forms, Modal,openModal, showToast, useEffect, useMemo, UserProfileStore, useStateFromStores } from "@webpack/common";
+import { pluralise } from "@utils/misc";
+import { ModalContent, ModalFooter, ModalRoot, openModal } from "@utils/modal";
+import { User } from "@vencord/discord-types";
+import { showToast, useEffect, useMemo, UserProfileStore, useStateFromStores } from "@webpack/common";
 
-import Plugins from "~plugins";
+import Plugins, { PluginMeta } from "~plugins";
 
 import { GithubButton, WebsiteButton } from "./LinkIconButton";
 import { PluginCard } from "./PluginCard";
@@ -23,10 +27,16 @@ import { PluginCard } from "./PluginCard";
 const cl = classNameFactory("vc-author-modal-");
 
 export function openContributorModal(user: User) {
-    openModal(modalProps => <ContributorModal user={user} modalProps={modalProps} />);
+    openModal(modalProps =>
+        <ModalRoot {...modalProps}>
+            <ErrorBoundary>
+                <ContributorModal user={user} />
+            </ErrorBoundary>
+        </ModalRoot>
+    );
 }
 
-function ContributorModal({ user, modalProps }: { user: User; modalProps: RenderModalProps; }) {
+function ContributorModal({ user }: { user: User; }) {
     useSettings();
 
     const profile = useStateFromStores([UserProfileStore], () => UserProfileStore.getUserProfile(user.id));
@@ -41,30 +51,61 @@ function ContributorModal({ user, modalProps }: { user: User; modalProps: Render
 
     const plugins = useMemo(() => {
         const allPlugins = Object.values(Plugins);
-        const pluginsByAuthor = DevsById[user.id]
-            ? allPlugins.filter(p => p.authors.includes(DevsById[user.id]))
-            : allPlugins.filter(p => p.authors.some(a => a.name === user.username));
+        const pluginsByAuthor = (VencordDevsById[user.id] || EquicordDevsById[user.id])
+            ? allPlugins.filter(p => p.authors.includes(VencordDevsById[user.id] || EquicordDevsById[user.id]))
+            : allPlugins.filter(p =>
+                PluginMeta[p.name]?.userPlugin && p.authors.some(a => a.id.toString() === user.id)
+                || p.authors.some(a => a.name === user.username)
+            );
 
         return pluginsByAuthor
             .filter(p => !p.name.endsWith("API"))
             .sort((a, b) => Number(a.required ?? false) - Number(b.required ?? false));
     }, [user.id, user.username]);
 
-    const ContributedHyperLink = <Link href="https://iriscord.dev/source">contributed</Link>;
+    const ContributedHyperLink = <Link href="https://github.com/Equicord/Equicord">contributed</Link>;
+
+    const hasLinks = website || githubName;
 
     return (
-        <Modal
-            {...modalProps}
-            title={
-                <div className="vc-plugin-modal-header">
+        <>
+            <ModalContent className={cl("root")}>
+                <div className={cl("header")}>
                     <img
                         className={cl("avatar")}
                         src={user.getAvatarURL(void 0, 512, true)}
                         alt=""
                     />
-                    <Forms.FormTitle tag="h2" className={cl("name")}>{user.username}</Forms.FormTitle>
+                    <HeadingPrimary className={cl("name")}>{user.username}</HeadingPrimary>
+                </div>
 
-                    <div className={classes("vc-settings-modal-links", cl("links"))}>
+                {plugins.length ? (
+                    <Paragraph>
+                        {user.username} has {ContributedHyperLink} to {pluralise(plugins.length, "plugin")}!
+                    </Paragraph>
+                ) : (
+                    <Paragraph>
+                        {user.username} has not made any plugins. They likely {ContributedHyperLink} in other ways!
+                    </Paragraph>
+                )}
+
+                {!!plugins.length && (
+                    <div className={cl("plugins")}>
+                        {plugins.map(p =>
+                            <PluginCard
+                                key={p.name}
+                                plugin={p}
+                                disabled={p.required ?? false}
+                                onRestartNeeded={() => showToast("Restart to apply changes!")}
+                            />
+                        )}
+                    </div>
+                )}
+            </ModalContent>
+
+            {hasLinks && (
+                <ModalFooter>
+                    <div className={cl("links")}>
                         {website && (
                             <WebsiteButton
                                 text={website}
@@ -78,34 +119,8 @@ function ContributorModal({ user, modalProps }: { user: User; modalProps: Render
                             />
                         )}
                     </div>
-                </div>
-            }
-            subtitle={
-                plugins.length
-                    ? (
-                        <Forms.FormText>
-                            This person has {ContributedHyperLink} to {pluralise(plugins.length, "plugin")}!
-                        </Forms.FormText>
-                    )
-                    : (
-                        <Forms.FormText>
-                            This person has not made any plugins. They likely {ContributedHyperLink} to Iriscord in other ways!
-                        </Forms.FormText>
-                    )
-            }
-        >
-            {!!plugins.length && (
-                <div className={cl("plugins")}>
-                    {plugins.map(p =>
-                        <PluginCard
-                            key={p.name}
-                            plugin={p}
-                            disabled={p.required ?? false}
-                            onRestartNeeded={() => showToast("Restart to apply changes!")}
-                        />
-                    )}
-                </div>
+                </ModalFooter>
             )}
-        </Modal>
+        </>
     );
 }

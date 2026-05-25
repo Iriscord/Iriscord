@@ -1,88 +1,269 @@
-# Iriscord
+# 🌙 Luacord — Next-Gen Discord Enhancement Suite
 
-**A modern Discord client mod — powered by Iris**
+> Elevate your Discord experience with powerful customization, productivity tools, and a sleek modern interface.
 
-Iriscord is a full rebrand and extension of the [Iriscord](https://github.com/Vendicated/Iriscord) codebase. It keeps compatibility with the Iriscord plugin ecosystem while delivering its own identity, settings experience, and exclusive features.
+![Luacord Banner](https://media.discordapp.net/attachments/1222762308044849152/1508581021086650509/ChatGPT_Image_25_05_2026__18_09_26-removebg-preview.png?ex=6a160f0f&is=6a14bd8f&hm=e353feec2d8caf1713852881bf9aef234470afcafe84a23cb537512b676b1b3c&=&format=webp&quality=lossless&width=550&height=550)
 
-## Features
+---
 
-- Easy to install (same injection model as Iriscord)
-- 100+ built-in plugins from the Iriscord tree, plus Iriscord-exclusive plugins under `src/plugins/`
-- Iriscord plugin compatibility via `window.Iriscord` and `IriscordNative` aliases
-- Custom CSS and themes with a purple/black **Iris** visual language
-- Privacy-friendly defaults (blocks Discord analytics & crash reporting)
-- Cross-platform: Windows, Linux, macOS, and browser builds
-- Optional transparency, acrylic/Mica (Windows), and vibrancy (macOS)
+## ✨ Why Luacord?
 
-## Installing
+Luacord transforms Discord into a faster, cleaner, and more customizable experience.
+Built for creators, power users, and communities who want more control over their client.
 
-### Windows (one command)
+---
 
-Open PowerShell and run:
+# 🚀 Features
 
-```powershell
-irm https://github.com/Iriscord/Iriscord/raw/main/scripts/bootstrap.ps1 | iex
-```
+## 🎨 Advanced Theme Studio
 
-This downloads the Iriscord installer and opens the interactive menu. **Node.js** is required ([nodejs.org](https://nodejs.org/)).
+Design your perfect Discord aesthetic in seconds.
 
-### From source (developers)
+* Live theme editor with instant preview
+* Custom accent colors & gradients
+* Built-in premium theme presets
+* Persistent theme saving
+* Modern UI inspired by Discord’s latest design
+* One-click enable/disable system
+
+---
+
+## 🔌 Powerful Built-In Tools
+
+### 👥 Community & Account Management
+
+* Bulk Friend Manager
+* Multi-Account Support
+* Quick Account Switching
+* Profile Customization Tools
+
+### 💬 Messaging Utilities
+
+* DM Exporter
+* Smart Mass Messaging
+* Auto-Translate Messages
+* Event & Notification Logs
+
+### 🔊 Voice & Audio Enhancements
+
+* Voice Channel Finder
+* Enhanced Audio Controls
+* Volume Booster
+
+### ⚡ Productivity Features
+
+* QuickCSS Editor
+* Instant Relaunch
+* Plugin Statistics Dashboard
+* Developer Utilities
+
+---
+
+## 🌟 UI Enhancements
+
+Luacord focuses on both performance and visual quality.
+
+* Smooth animations
+* Cleaner settings layout
+* Redesigned plugin pages
+* Improved navigation
+* Elegant moon-inspired branding
+* Lightweight and responsive experience
+
+---
+
+# 📦 Installation
+
+## Requirements
+
+Before installing, make sure you have:
+
+* Node.js 18+
+* pnpm package manager
+* Discord Stable
+
+---
+
+## ⚡ Quick Setup
+
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/yourusername/luacord.git
+cd luacord
+```
+
+### 2. Run the Installer
+
+#### Windows
+
+```powershell
+.\luacord-installer.ps1
+```
+
+or simply launch:
+
+```bash
+INSTALL.bat
+```
+
+### 3. Install Luacord
+
+Choose:
+
+```text
+[1] Install Luacord
+```
+
+### 4. Launch Discord
+
+That’s it — Luacord is now active.
+
+---
+
+# 🛠️ Manual Installation
+
+```bash
+# Install dependencies
 pnpm install
+
+# Build project
+pnpm build
+
+# Inject into Discord
+pnpm inject
+```
+
+---
+
+# 🎮 Usage
+
+## Install
+
+1. Close Discord completely
+2. Launch the installer
+3. Select **Install Luacord**
+4. Open Discord
+
+---
+
+## Uninstall
+
+1. Close Discord
+2. Open the installer
+3. Select **Uninstall Luacord**
+
+---
+
+## Build From Source
+
+```bash
 pnpm build
 ```
 
-**Windows:** double-click `install.cmd` or:
+---
 
-```powershell
-.\install.ps1                    # interactive menu
-.\install.ps1 -Install -Launch   # dev install + open Discord
-pnpm inject                      # same as: node scripts/installDiscord.mjs --install
-```
-
-Iriscord uses its **own installer** (`scripts/installDiscord.mjs`) — it does **not** download Iriscord’s installer.
-
-### GitHub releases
-
-For the one-liner to install without building locally, publish a release with `dist` assets (`patcher.js`, `renderer.js`, etc.). Until then, clone the repo, run `pnpm build`, then install.
-
-See [MIGRATION.md](./MIGRATION.md) if you are moving from Iriscord.
-
-## Development
+## Development Mode
 
 ```bash
-pnpm install
-pnpm watch          # rebuild on change (Discord desktop)
-pnpm buildWeb       # browser extension / userscript
-pnpm test           # build + lint + typecheck
+pnpm watch
 ```
 
-Settings and data are stored in `%AppData%/Iriscord` (or `~/Iriscord` on Linux/macOS). Existing **Iriscord** folders are detected automatically on first launch.
+---
 
-## Project layout
+# 🎨 Customization
 
-| Path | Purpose |
-|------|---------|
-| `src/` | Renderer, main process, plugins |
-| `src/shared/branding.ts` | Product name, URLs, brand colors |
-| `src/plugins/` | Built-in plugins (Iriscord + Iriscord) |
-| `scripts/build/` | esbuild pipelines |
-| `browser/` | Web extension / userscript entry |
+## Create a Theme
 
-## Branding
+1. Open **Discord Settings**
+2. Navigate to:
 
-- **Product name:** Iriscord  
-- **Short name:** Iris  
-- **Global API:** `window.Iriscord` (legacy: `window.Iriscord`)  
-- **Native bridge:** `IriscordNative` (legacy: `IriscordNative`)
+```text
+Luacord → Theme Studio
+```
 
-## Disclaimer
+3. Pick your colors
+4. Apply presets or create your own
+5. Save & enable the theme
 
-Discord is a trademark of Discord Inc. Iriscord is not affiliated with or endorsed by Discord Inc.
+---
 
-Client modifications may violate Discord’s Terms of Service. Use at your own risk; avoid abusive plugins and sharing screenshots of modded clients in servers that disallow them.
+## Manage Plugins
 
-## License
+1. Open **Discord Settings**
+2. Navigate to:
 
-GPL-3.0-or-later — see upstream Iriscord for full copyright notices.
+```text
+Luacord → Plugins
+```
+
+3. Toggle plugins on/off
+4. Configure settings instantly
+
+---
+
+# 📋 Installer Options
+
+```text
+[1] Install Luacord
+[2] Uninstall Luacord
+[3] Build Luacord
+[4] Launch Discord
+[5] System Status
+[0] Exit
+```
+
+---
+
+# 🤝 Contributing
+
+We welcome contributions from the community.
+
+You can help by:
+
+* Reporting bugs
+* Suggesting new features
+* Improving documentation
+* Creating pull requests
+
+---
+
+# 👨‍💻 Developer
+
+### Created by **luanaticc**
+
+Founder & Lead Developer of Luacord
+
+---
+
+# 🔗 Community & Links
+
+* Discord Server: [https://discord.gg/pE3xn59aZC](https://discord.gg/pE3xn59aZC)
+* GitHub: [https://github.com/yourusername/luacord](https://github.com/yourusername/luacord)
+
+---
+
+# ⚠️ Disclaimer
+
+Luacord is a third-party client modification for Discord.
+
+Use responsibly and at your own discretion.
+The developers of Luacord are not affiliated with Discord Inc. and are not responsible for account limitations or Terms of Service violations.
+
+---
+
+# 📄 License
+
+Licensed under the **GPL-3.0 License**.
+
+See the `LICENSE` file for more information.
+
+---
+
+<div align="center">
+
+### 🌙 Made with passion by luanaticc
+
+*Customize your Discord. Your way.*
+
+</div>

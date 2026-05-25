@@ -1,15 +1,17 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { addPatch } from "@api/PluginManager";
+import { initWs } from "@plugins/devCompanion.dev/initWs";
 import { Logger } from "@utils/Logger";
 import * as Webpack from "@webpack";
 import { getBuildNumber, patches, patchTimings } from "@webpack/patcher";
 
 import { loadLazyChunks } from "./loadLazyChunks";
+import { reporterData } from "./reporterData";
 
 async function runReporter() {
     const ReporterLogger = new Logger("Reporter");
@@ -24,12 +26,12 @@ async function runReporter() {
             find: '"Could not find app-mount"',
             replacement: {
                 match: /"Could not find app-mount"/,
-                replace: "(Iriscord.Webpack._initReporter(),$&)"
+                replace: "(Vencord.Webpack._initReporter(),$&)"
             }
-        }, "Iriscord Reporter");
+        }, "Equicord Reporter");
 
         // @ts-expect-error
-        Iriscord.Webpack._initReporter = function () {
+        Vencord.Webpack._initReporter = function () {
             // initReporter is called in the patched entry point of Discord
             // setImmediate to only start searching for lazy chunks after Discord initialized the app
             setTimeout(() => loadLazyChunks().then(loadLazyChunksResolve), 0);
@@ -37,14 +39,7 @@ async function runReporter() {
 
         await loadLazyChunksDone;
 
-        // Manually require all modules to make sure all lazily required modules are patched
-        for (const moduleId of Object.keys(Webpack.wreq.m)) {
-            try {
-                Webpack.wreq(moduleId);
-            } catch { }
-        }
-
-        if (IS_REPORTER && IS_WEB && !IS_VESKTOP) {
+        if (IS_REPORTER && IS_WEB && !IS_VESKTOP && !IS_EQUIBOP) {
             console.log("[REPORTER_META]", {
                 buildNumber: getBuildNumber(),
                 buildHash: window.GLOBAL_ENV.SENTRY_TAGS.buildId
@@ -54,11 +49,13 @@ async function runReporter() {
         for (const patch of patches) {
             if (!patch.all) {
                 new Logger("WebpackPatcher").warn(`Patch by ${patch.plugin} found no module (Module id is -): ${patch.find}`);
+                if (IS_COMPANION_TEST)
+                    reporterData.failedPatches.foundNoModule.push(patch);
             }
         }
 
         for (const [plugin, moduleId, match, totalTime] of patchTimings) {
-            if (totalTime > 10) {
+            if (totalTime > 5) {
                 new Logger("WebpackPatcher").warn(`Patch by ${plugin} took ${Math.round(totalTime * 100) / 100}ms (Module id is ${String(moduleId)}): ${match}`);
             }
         }
@@ -73,6 +70,7 @@ async function runReporter() {
                 else method = "find";
             }
             if (searchType === "waitForStore") method = "findStore";
+            if (searchType === "waitForStore" && args[0] === "PermissionStore") continue;
 
             let result: any;
             try {
@@ -93,12 +91,12 @@ async function runReporter() {
                     result = Webpack[method](...args);
                 }
 
-                if (result == null || (result.$$iriscordGetWrappedComponent != null && result.$$iriscordGetWrappedComponent() == null)) throw new Error("Webpack Find Fail");
+                if (result == null || (result.$$vencordGetWrappedComponent != null && result.$$vencordGetWrappedComponent() == null)) throw new Error("Webpack Find Fail");
             } catch (e) {
                 let logMessage = searchType;
                 if (method === "find" || method === "proxyLazyWebpack" || method === "LazyComponentWebpack") {
-                    if (args[0].$$iriscordProps != null) {
-                        logMessage += `(${args[0].$$iriscordProps.map(arg => `"${arg}"`).join(", ")})`;
+                    if (args[0].$$vencordProps != null) {
+                        logMessage += `(${args[0].$$vencordProps.map(arg => `"${arg}"`).join(", ")})`;
                     } else {
                         logMessage += `(${args[0].toString().slice(0, 147)}...)`;
                     }
@@ -111,17 +109,23 @@ async function runReporter() {
                 } else {
                     logMessage += `(${args.map(arg => `"${arg}"`).join(", ")})`;
                 }
-
+                if (IS_COMPANION_TEST)
+                    reporterData.failedWebpack[method].push(args.map(a => String(a)));
                 ReporterLogger.log("Webpack Find Fail:", logMessage);
             }
         }
 
+        // if we are running the reporter with companion integration, send the list to vscode as soon as we can
+        if (IS_COMPANION_TEST)
+            initWs();
         ReporterLogger.log("Finished test");
     } catch (e) {
         ReporterLogger.log("A fatal error occurred:", e);
     }
 }
 
-// Run after the Iriscord object has been created.
-// We need to add extra properties to it, and it is only created after all of Iriscord code has ran
-setTimeout(runReporter, 0);
+// Imported in webpack for reporterData, wrap to avoid running reporter
+// Run after the Equicord object has been created.
+// We need to add extra properties to it, and it is only created after all of Equicord code has ran
+if (IS_REPORTER)
+    setTimeout(runReporter, 0);

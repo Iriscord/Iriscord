@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -30,9 +30,9 @@ export function QuickAction(props: QuickActionProps) {
     );
 }
 
-export function QuickActionCard(props: PropsWithChildren) {
+export function QuickActionCard(props: PropsWithChildren<{ columns?: number; }>) {
     return (
-        <Card className={cl("card")}>
+        <Card className={cl("card")} style={props.columns ? { gridTemplateColumns: `repeat(${props.columns}, 1fr)` } : undefined}>
             {props.children}
         </Card>
     );

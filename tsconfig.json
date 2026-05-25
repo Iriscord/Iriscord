@@ -19,23 +19,58 @@
         "noImplicitAny": false,
         "target": "ESNEXT",
         "jsx": "preserve",
-
+        "baseUrl": "./src/",
         "paths": {
-            "@main/*": ["./src/main/*"],
-            "@api/*": ["./src/api/*"],
-            "@components/*": ["./src/components/*"],
-            "@debug/*": ["./src/debug/*"],
-            "@utils/*": ["./src/utils/*"],
-            "@plugins/*": ["./plugins/*"],
-            "@shared/*": ["./src/shared/*"],
-            "@webpack/common": ["./src/webpack/common"],
-            "@webpack/common/*": ["./src/webpack/common/*"],
-            "@webpack": ["./src/webpack/webpack"],
-            "@webpack/patcher": ["./src/webpack/patchWebpack"],
-            "@webpack/wreq.d": ["./src/webpack/wreq.d"],
-            "@webpack/types": ["./src/webpack/types"],
+            "@main/*": [
+                "./main/*"
+            ],
+            "@api/*": [
+                "./api/*"
+            ],
+            "@components/*": [
+                "./components/*"
+            ],
+            "@utils/*": [
+                "./utils/*"
+            ],
+            "@debug/*": [
+                "./debug/*"
+            ],
+            "@plugins/*": [
+                "./plugins/*"
+            ],
+            "@shared/*": [
+                "./shared/*"
+            ],
+            "@webpack/common": [
+                "./webpack/common"
+            ],
+            "@webpack/common/*": [
+                "./webpack/common/*"
+            ],
+            "@webpack": [
+                "./webpack/webpack"
+            ],
+            "@webpack/patcher": [
+                "./webpack/patchWebpack"
+            ],
+            "@webpack/wreq.d": [
+                "./webpack/wreq.d"
+            ],
+            "@luacordplugins/*": [
+                "./luacordplugins/*"
+            ],
+            "main/*": [
+                "./luacord/main/*"
+            ],
+            "shared/*": [
+                "./luacord/shared/*",
+                "./shared/*"
+            ],
+            "renderer/*": [
+                "./luacord/renderer/*"
+            ]
         },
-
         "plugins": [
             // Transform paths in output .d.ts files (Include this line if you output declarations files)
             {
@@ -45,5 +80,10 @@
         ],
         "outDir": "who-fucking-cares-dude"
     },
-    "include": ["src/**/*", "browser/**/*", "scripts/**/*", "eslint.config.mjs"],
+    "include": [
+        "src/**/*",
+        "browser/**/*",
+        "scripts/**/*",
+        "eslint.config.mjs"
+    ],
 }

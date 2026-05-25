@@ -1,5 +1,5 @@
-/*
- * Iriscord, a modification for Discord's desktop app
+﻿/*
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,17 @@ import plugins from "~plugins";
 
 const logger = new Logger("Settings");
 
+const FORCE_DISABLED_DEFAULT_PLUGIN_KEYS = new Set([
+    "activityspoofer",
+    "audiolimiter",
+    "antigroup",
+    "cursormacos",
+    "fakeperm",
+    "translucence",
+    "rolecoloreverywhere",
+    "voicechatutilities"
+]);
+
 export interface SettingsPluginUiElement {
     enabled: boolean;
     // TODO
@@ -39,12 +50,17 @@ export type SettingsPluginUiElements = {
 
 export interface Settings {
     autoUpdate: boolean;
-    autoUpdateNotification: boolean,
+    autoUpdateNotification: boolean;
     useQuickCss: boolean;
     eagerPatches: boolean;
     enabledThemes: string[];
+    enabledThemeLinks: string[];
+    enableOnlineThemes: boolean;
+    pinnedThemes: string[];
+    themeNames: Record<string, string>;
     enableReactDevtools: boolean;
     themeLinks: string[];
+    mainWindowFrameless: boolean;
     frameless: boolean;
     transparent: boolean;
     winCtrlQ: boolean;
@@ -62,7 +78,6 @@ export interface Settings {
     | "under-page"
     | "window"
     | undefined;
-    windowsMaterial: "none" | "mica" | "tabbed" | "acrylic";
     disableMinSize: boolean;
     winNativeTitleBar: boolean;
     plugins: {
@@ -81,6 +96,7 @@ export interface Settings {
         timeout: number;
         position: "top-right" | "bottom-right";
         useNative: "always" | "never" | "not-focused";
+        missed: boolean;
         logLimit: number;
     };
 
@@ -90,6 +106,15 @@ export interface Settings {
         settingsSync: boolean;
         settingsSyncVersion: number;
     };
+
+    ignoreResetWarning: boolean;
+
+    userCssVars: {
+        [themeId: string]: {
+            [varName: string]: string;
+        };
+    };
+
 }
 
 const DefaultSettings: Settings = {
@@ -99,12 +124,16 @@ const DefaultSettings: Settings = {
     themeLinks: [],
     eagerPatches: false, // Eagerly patching no longer works due to module factories with the same id being able to have different sources now.
     enabledThemes: [],
+    enabledThemeLinks: [],
+    enableOnlineThemes: true,
+    pinnedThemes: [],
+    themeNames: {},
     enableReactDevtools: false,
+    mainWindowFrameless: false,
     frameless: false,
     transparent: false,
     winCtrlQ: false,
     macosVibrancyStyle: undefined,
-    windowsMaterial: "none",
     disableMinSize: false,
     winNativeTitleBar: false,
     plugins: {},
@@ -118,19 +147,47 @@ const DefaultSettings: Settings = {
         timeout: 5000,
         position: "bottom-right",
         useNative: "not-focused",
+        missed: true,
         logLimit: 50
     },
 
     cloud: {
         authenticated: false,
-        url: "https://api.iriscord.dev/",
+        url: "https://cloud.equicord.org/",
         settingsSync: false,
         settingsSyncVersion: 0
-    }
+    },
+
+    userCssVars: {},
 };
 
-const settings = !IS_REPORTER ? IriscordNative.settings.get() : {} as Settings;
+const settings = !IS_REPORTER ? VencordNative.settings.get() : {} as Settings;
 mergeDefaults(settings, DefaultSettings);
+
+// Force enabledByDefault plugins to be enabled, even if they were previously saved as disabled.
+// This runs at load time so it works even for plugins already present in the settings file.
+if (!IS_REPORTER && settings.plugins && plugins) {
+    for (const [pluginKey, pluginDef] of Object.entries(plugins as Record<string, any>)) {
+        const forceOff =
+            FORCE_DISABLED_DEFAULT_PLUGIN_KEYS.has(pluginKey.toLowerCase())
+            || FORCE_DISABLED_DEFAULT_PLUGIN_KEYS.has(String(pluginDef?.name ?? "").toLowerCase());
+
+        if (forceOff) {
+            if (settings.plugins[pluginKey]) settings.plugins[pluginKey].enabled = false;
+            continue;
+        }
+
+        const shouldBeEnabled = Boolean(pluginDef?.required) || Boolean(pluginDef?.enabledByDefault);
+        if (shouldBeEnabled) {
+            if (!settings.plugins[pluginKey]) {
+                settings.plugins[pluginKey] = { enabled: true };
+            } else {
+                settings.plugins[pluginKey].enabled = true;
+            }
+        }
+    }
+}
+
 
 export const SettingsStore = new SettingsStoreClass(settings, {
     readOnly: true,
@@ -142,17 +199,37 @@ export const SettingsStore = new SettingsStoreClass(settings, {
         const v = target[key];
         if (!plugins) return v; // plugins not initialised yet. this means this path was reached by being called on the top level
 
-        if (path === "plugins" && key in plugins)
-            return target[key] = {
-                enabled: IS_REPORTER || plugins[key].required || plugins[key].enabledByDefault || false
-            };
+        if (path === "plugins" && key in plugins) {
+            const pluginKey = String(key);
+            const pluginDef = (plugins as Record<string, any>)[pluginKey];
+            const forceOff =
+                FORCE_DISABLED_DEFAULT_PLUGIN_KEYS.has(pluginKey.toLowerCase())
+                || FORCE_DISABLED_DEFAULT_PLUGIN_KEYS.has(String(pluginDef?.name ?? "").toLowerCase());
+
+            const shouldBeEnabled = !forceOff && (IS_REPORTER || Boolean(pluginDef?.required) || Boolean(pluginDef?.enabledByDefault));
+
+            if (!target[key]) {
+                return target[key] = { enabled: shouldBeEnabled };
+            }
+
+            // Si le plugin doit être actif par défaut et qu'il est désactivé, on le force à actif
+            if (shouldBeEnabled && target[key].enabled === false) {
+                target[key].enabled = true;
+            }
+            // Si le plugin doit être désactivé de force, on le force à inactif
+            if (forceOff) {
+                target[key].enabled = false;
+            }
+
+            return target[key];
+        }
 
         // Since the property is not set, check if this is a plugin's setting and if so, try to resolve
         // the default value.
         if (path.startsWith("plugins.")) {
             const plugin = path.slice("plugins.".length);
             if (plugin in plugins) {
-                const setting = plugins[plugin].settings?.def[key];
+                const setting = plugins[plugin].options?.[key];
                 if (!setting) return v;
 
                 if ("default" in setting)
@@ -174,7 +251,7 @@ export const SettingsStore = new SettingsStoreClass(settings, {
 if (!IS_REPORTER) {
     SettingsStore.addGlobalChangeListener((_, path) => {
         SettingsStore.plain.cloud.settingsSyncVersion = Date.now();
-        IriscordNative.settings.set(SettingsStore.plain, path);
+        VencordNative.settings.set(SettingsStore.plain, path);
     });
 }
 
@@ -182,7 +259,7 @@ if (!IS_REPORTER) {
  * Same as {@link Settings} but unproxied. You should treat this as readonly,
  * as modifying properties on this will not save to disk or call settings
  * listeners.
- * WARNING: default values specified in plugin.settings will not be ensured here. In other words,
+ * WARNING: default values specified in plugin.options will not be ensured here. In other words,
  * settings for which you specified a default value may be uninitialised. If you need proper
  * handling for default values, use {@link Settings}
  */
@@ -246,14 +323,65 @@ export function migratePluginSettings(name: string, ...oldNames: string[]) {
     }
 }
 
-export function migratePluginSetting(pluginName: string, oldSetting: string, newSetting: string) {
+export function migratePluginSetting(pluginName: string, newSetting: string, oldSetting: string) {
     const settings = SettingsStore.plain.plugins[pluginName];
     if (!settings) return;
 
     if (!Object.hasOwn(settings, oldSetting) || Object.hasOwn(settings, newSetting)) return;
 
+    logger.info(`Migrating plugin setting from ${oldSetting} to ${newSetting} on ${pluginName}`);
     settings[newSetting] = settings[oldSetting];
     delete settings[oldSetting];
+    SettingsStore.markAsChanged();
+}
+
+export function migratePluginToSettings(deleteOldSettings: boolean, newName: string, oldName: string, ...settingNames: string[]) {
+    const { plugins } = SettingsStore.plain;
+    const newPlugin = plugins[newName];
+    const oldPlugin = plugins[oldName];
+
+    if (newPlugin && oldPlugin?.enabled) {
+        for (const settingName of settingNames) {
+            logger.info(`Migrating plugin to setting from old name ${oldName} to ${newName} as ${settingName}`);
+            newPlugin[settingName] = true;
+        }
+
+        newPlugin.enabled = true;
+        if (deleteOldSettings) delete plugins[oldName];
+        SettingsStore.markAsChanged();
+    }
+}
+
+export function migrateSettingToPlugin(newName: string, oldName: string, settingName: string) {
+    const { plugins } = SettingsStore.plain;
+    const newPlugin = plugins[newName];
+    const oldPlugin = plugins[oldName];
+
+    if (newPlugin && oldPlugin?.enabled && oldPlugin?.[settingName]) {
+        logger.info(`Migrating setting ${settingName} from ${oldName} to seperate plugin ${newName}`);
+        delete oldPlugin[settingName];
+        newPlugin.enabled = true;
+        SettingsStore.markAsChanged();
+    }
+}
+
+export function migrateSettingsFromPlugin(newPlugin: string, oldPlugin: string, ...settings: string[]) {
+    const { plugins } = SettingsStore.plain;
+
+    const oldSettings = plugins[oldPlugin];
+    const newSettings = plugins[newPlugin];
+    if (!oldSettings || !newSettings) return;
+
+    for (const setting of settings) {
+        if (!Object.hasOwn(oldSettings, setting)) continue;
+        if (Object.hasOwn(newSettings, setting)) continue;
+
+        logger.info(`Migrating plugin setting "${setting}" from ${oldPlugin} to ${newPlugin}`);
+
+        newSettings[setting] = oldSettings[setting];
+        delete oldSettings[setting];
+    }
+
     SettingsStore.markAsChanged();
 }
 
@@ -262,13 +390,7 @@ export function definePluginSettings<
     Checks extends SettingsChecks<Def>,
     PrivateSettings extends object = {}
 >(def: Def, checks?: Checks) {
-    if (checks) {
-        for (const [name, check] of Object.entries(checks)) {
-            Object.assign(def[name], check);
-        }
-    }
-
-    const definedSettings: DefinedSettings<Def, PrivateSettings> = {
+    const definedSettings: DefinedSettings<Def, Checks, PrivateSettings> = {
         get store() {
             if (!definedSettings.pluginName) throw new Error("Cannot access settings before plugin is initialized");
             return Settings.plugins[definedSettings.pluginName] as any;
@@ -283,10 +405,11 @@ export function definePluginSettings<
                 : [`plugins.${definedSettings.pluginName}.*`]
         ) as UseSettings<Settings>[]).plugins[definedSettings.pluginName] as any,
         def,
+        checks: checks ?? {} as any,
         pluginName: "",
 
         withPrivateSettings<T extends object>() {
-            return this as DefinedSettings<Def, T>;
+            return this as DefinedSettings<Def, Checks, T>;
         }
     };
 

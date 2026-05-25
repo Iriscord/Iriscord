@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ export function canonicalizeMatch<T extends RegExp | string>(match: T): T {
     let partialCanon = typeof match === "string" ? match : match.source;
     partialCanon = partialCanon.replaceAll(/#{intl::([\w$+/]*)(?:::(\w+))?}/g, (_, key, modifier) => {
         const hashed = modifier === "raw" ? key : runtimeHashMessageKey(key);
+        if (modifier === "hash") return hashed;
 
         const isString = typeof match === "string";
         const hasSpecialChars = !Number.isNaN(Number(hashed[0])) || hashed.includes("+") || hashed.includes("/");

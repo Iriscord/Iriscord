@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,16 +18,16 @@
 
 import { Logger } from "@utils/Logger";
 import { makeCodeblock } from "@utils/text";
-import { CommandArgument, CommandContext, CommandOption } from "@iriscord/discord-types";
+import { CommandArgument, CommandContext, CommandOption } from "@vencord/discord-types";
 
 import { sendBotMessage } from "./commandHelpers";
-import { ApplicationCommandInputType, ApplicationCommandOptionType, ApplicationCommandType, IriscordCommand } from "./types";
+import { ApplicationCommandInputType, ApplicationCommandOptionType, ApplicationCommandType, VencordCommand } from "./types";
 
 export * from "./commandHelpers";
 export * from "./types";
 
-export let BUILT_IN: IriscordCommand[];
-export const commands = {} as Record<string, IriscordCommand>;
+export let BUILT_IN: VencordCommand[];
+export const commands = {} as Record<string, VencordCommand>;
 
 // hack for plugins being evaluated before we can grab these from webpack
 const OptPlaceholder = Symbol("OptionalMessageOption") as any as CommandOption;
@@ -50,7 +50,7 @@ export let RequiredMessageOption: CommandOption = ReqPlaceholder;
 // Add this offset to every added command to keep them unique
 let commandIdOffset: number;
 
-export const _init = function (cmds: IriscordCommand[]) {
+export const _init = function (cmds: VencordCommand[]) {
     try {
         BUILT_IN = cmds;
         OptionalMessageOption = cmds.find(c => (c.untranslatedName || c.displayName) === "shrug")!.options![0];
@@ -62,8 +62,8 @@ export const _init = function (cmds: IriscordCommand[]) {
     return cmds;
 } as never;
 
-export const _handleCommand = function (cmd: IriscordCommand, args: CommandArgument[], ctx: CommandContext) {
-    if (!cmd.isIriscordCommand)
+export const _handleCommand = function (cmd: VencordCommand, args: CommandArgument[], ctx: CommandContext) {
+    if (!cmd.isVencordCommand)
         return cmd.execute(args, ctx);
 
     const handleError = (err: any) => {
@@ -75,7 +75,7 @@ export const _handleCommand = function (cmd: IriscordCommand, args: CommandArgum
         sendBotMessage(ctx.channel.id, {
             content: `${msg}:\n${makeCodeblock(reason)}`,
             author: {
-                username: "Iriscord"
+                username: "Equicord"
             }
         });
     };
@@ -88,12 +88,11 @@ export const _handleCommand = function (cmd: IriscordCommand, args: CommandArgum
     }
 } as never;
 
-
 /**
  * Prepare a Command Option for Discord by filling missing fields
  * @param opt
  */
-export function prepareOption<O extends CommandOption | IriscordCommand>(opt: O): O {
+export function prepareOption<O extends CommandOption | VencordCommand>(opt: O): O {
     opt.displayName ||= opt.name;
     opt.displayDescription ||= opt.description;
     opt.options?.forEach((opt, i, opts) => {
@@ -110,7 +109,7 @@ export function prepareOption<O extends CommandOption | IriscordCommand>(opt: O)
 // Yes, Discord registers individual commands for each subcommand
 // TODO: This probably doesn't support nested subcommands. If that is ever needed,
 // investigate
-function registerSubCommands(cmd: IriscordCommand, plugin: string) {
+function registerSubCommands(cmd: VencordCommand, plugin: string) {
     cmd.options?.forEach(o => {
         if (o.type !== ApplicationCommandOptionType.SUB_COMMAND)
             throw new Error("When specifying sub-command options, all options must be sub-commands.");
@@ -133,7 +132,7 @@ function registerSubCommands(cmd: IriscordCommand, plugin: string) {
     });
 }
 
-export function registerCommand<C extends IriscordCommand>(command: C, plugin: string) {
+export function registerCommand<C extends VencordCommand>(command: C, plugin: string) {
     if (!BUILT_IN) {
         console.warn(
             "[CommandsAPI]",
@@ -146,7 +145,7 @@ export function registerCommand<C extends IriscordCommand>(command: C, plugin: s
     if (BUILT_IN.some(c => c.name === command.name))
         throw new Error(`Command '${command.name}' already exists.`);
 
-    command.isIriscordCommand = true;
+    command.isVencordCommand = true;
     command.untranslatedName ??= command.name;
     command.untranslatedDescription ??= command.description;
     command.id ??= `-${BUILT_IN.length + commandIdOffset + 1}`;

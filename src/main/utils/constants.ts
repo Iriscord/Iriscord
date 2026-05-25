@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,59 +16,58 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, mkdirSync } from "fs";
 import { app } from "electron";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
-import { DATA_DIR_NAME, LEGACY_DATA_DIR_ALT_NAME, LEGACY_DATA_DIR_NAME } from "../../shared/branding";
+const suffix = IS_DEV ? "dev" : "";
 
-function resolveDataDir(): string {
-    if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
-    if (process.env.IRISCORD_USER_DATA_DIR) return process.env.IRISCORD_USER_DATA_DIR;
+export const DATA_DIR = process.env.LUACORD_USER_DATA_DIR ?? (
+    process.env.DISCORD_USER_DATA_DIR
+        ? join(process.env.DISCORD_USER_DATA_DIR, "..", "LuacordData", suffix)
+        : join(app.getPath("userData"), "..", "Luacord", suffix)
+);
 
-    const base = process.env.DISCORD_USER_DATA_DIR
-        ? join(process.env.DISCORD_USER_DATA_DIR, "..")
-        : join(app.getPath("userData"), "..");
-
-    const iriscordDir = join(base, DATA_DIR_NAME);
-    if (existsSync(iriscordDir)) return iriscordDir;
-
-    // Migrate from Iriscord install: prefer existing settings folder
-    const legacy = join(base, LEGACY_DATA_DIR_NAME);
-    if (existsSync(legacy)) return legacy;
-
-    const legacyAlt = join(base, LEGACY_DATA_DIR_ALT_NAME);
-    if (existsSync(legacyAlt)) return legacyAlt;
-
-    return iriscordDir;
-}
-
-export const DATA_DIR = resolveDataDir();
 export const SETTINGS_DIR = join(DATA_DIR, "settings");
 export const THEMES_DIR = join(DATA_DIR, "themes");
-
-/** Where to place plugins for manual install (see userplugins/README.md) */
-export const USER_PLUGINS_DIR = (() => {
-    const devSrc = join(DATA_DIR, "src", "userplugins");
-    if (process.env.IRISCORD_DEV_INSTALL || process.env.IRISCORD_DEV_INSTALL) {
-        mkdirSync(devSrc, { recursive: true });
-        return devSrc;
-    }
-    const dir = join(DATA_DIR, "userplugins");
-    mkdirSync(dir, { recursive: true });
-    return dir;
-})();
 export const QUICK_CSS_PATH = join(SETTINGS_DIR, "quickCss.css");
 export const SETTINGS_FILE = join(SETTINGS_DIR, "settings.json");
 export const NATIVE_SETTINGS_FILE = join(SETTINGS_DIR, "native-settings.json");
+export const DEV_MIGRATED = join(SETTINGS_DIR, "migration");
 export const ALLOWED_PROTOCOLS = [
     "https:",
     "http:",
     "steam:",
     "spotify:",
-    "com.epicgames.launcher:",
     "tidal:",
     "itunes:",
+    "vrcx:",
 ];
 
 export const IS_VANILLA = /* @__PURE__ */ process.argv.includes("--vanilla");
+
+if (IS_DEV) {
+    const prodDir = join(DATA_DIR, "..");
+    const settings = join(prodDir, "settings", "settings.json");
+    const quickCss = join(prodDir, "settings", "quickCss.css");
+
+    let migrated = false;
+    if (existsSync(DEV_MIGRATED)) {
+        const content = readFileSync(DEV_MIGRATED, "utf-8");
+        migrated = content.includes("migrated");
+    }
+
+    if (!migrated) {
+        setTimeout(() => {
+            try {
+                if (existsSync(settings)) copyFileSync(settings, SETTINGS_FILE);
+                if (existsSync(quickCss)) copyFileSync(quickCss, QUICK_CSS_PATH);
+                writeFileSync(DEV_MIGRATED, "migrated");
+                app.relaunch();
+                app.exit(0);
+            } catch (err) {
+                console.error("[Luacord] Failed to copy prod data:", err);
+            }
+        }, 5000);
+    }
+}

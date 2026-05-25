@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -150,6 +150,24 @@ export function useTimer({ interval = 1000, deps = [] }: TimerOpts) {
             clearInterval(intervalId);
         };
     }, deps);
+
+    return time;
+}
+interface FixedTimerOpts {
+    interval?: number;
+    initialTime?: number;
+}
+
+export function useFixedTimer({ interval = 1000, initialTime = Date.now() }: FixedTimerOpts) {
+    const [time, setTime] = useState(Date.now() - initialTime);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => setTime(Date.now() - initialTime), interval);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [initialTime]);
 
     return time;
 }

@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import * as t from "@iriscord/discord-types";
+import * as t from "@vencord/discord-types";
 import { findByCodeLazy, findByPropsLazy } from "@webpack";
 
 import { waitForStore } from "./internal";
@@ -36,7 +36,6 @@ export let GuildChannelStore: t.GuildChannelStore;
 export let ReadStateStore: t.ReadStateStore;
 export let PresenceStore: t.PresenceStore;
 export let AccessibilityStore: t.AccessibilityStore;
-export let PendingReplyStore: t.PendingReplyStore;
 
 export let GuildStore: t.GuildStore;
 export let GuildRoleStore: t.GuildRoleStore;
@@ -82,10 +81,10 @@ export let SoundboardStore: t.SoundboardStore;
 export let PopoutWindowStore: t.PopoutWindowStore;
 export let ApplicationCommandIndexStore: t.ApplicationCommandIndexStore;
 export let EditMessageStore: t.EditMessageStore;
-export let ExperimentStore: t.ExperimentStore;
-export let UserAffinitiesStore: t.UserAffinitiesStore;
-export let ApplicationStreamingStore: t.ApplicationStreamingStore;
-export let ApplicationStreamPreviewStore: t.ApplicationStreamPreviewStore;
+export let QuestStore: t.QuestStore;
+export let PendingReplyStore: t.PendingReplyStore;
+export let ExperimentStore: GenericStore;
+export let UserAffinitiesStore: GenericStore;
 
 /**
  * @see jsdoc of {@link t.useStateFromStores}
@@ -137,16 +136,13 @@ waitForStore("LocaleStore", m => LocaleStore = m);
 waitForStore("RTCConnectionStore", m => RTCConnectionStore = m);
 waitForStore("SoundboardStore", m => SoundboardStore = m);
 waitForStore("PopoutWindowStore", m => PopoutWindowStore = m);
-waitForStore("PendingReplyStore", m => PendingReplyStore = m);
 waitForStore("ApplicationCommandIndexStore", m => ApplicationCommandIndexStore = m);
 waitForStore("EditMessageStore", m => EditMessageStore = m);
+waitForStore("PendingReplyStore", m => PendingReplyStore = m);
 waitForStore("ExperimentStore", m => ExperimentStore = m);
+waitForStore("QuestStore", m => QuestStore = m);
 waitForStore("UserAffinitiesV2Store", m => UserAffinitiesStore = m);
-waitForStore("ApplicationStreamingStore", m => ApplicationStreamingStore = m);
-waitForStore("ApplicationStreamPreviewStore", m => ApplicationStreamPreviewStore = m);
 waitForStore("ThemeStore", m => {
     ThemeStore = m;
-    // Importing this directly causes all webpack commons to be imported, which can easily cause circular dependencies.
-    // For this reason, use a non import access here.
-    Iriscord.Api.Themes.initQuickCssThemeStore(m);
+    import("@api/Themes").then(({ initQuickCssThemeStore }) => initQuickCssThemeStore(m));
 });

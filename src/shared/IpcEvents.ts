@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2023 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,44 +17,80 @@
 */
 
 export const enum IpcEvents {
-    INIT_FILE_WATCHERS = "IriscordInitFileWatchers",
+    INIT_FILE_WATCHERS = "VencordInitFileWatchers",
+    QUICK_CSS_UPDATE = "VencordQuickCssUpdate",
+    OPEN_QUICKCSS = "VencordOpenQuickCss",
+    GET_QUICK_CSS = "VencordGetQuickCss",
+    SET_QUICK_CSS = "VencordSetQuickCss",
+    UPLOAD_THEME = "VencordUploadTheme",
+    DELETE_THEME = "VencordDeleteTheme",
+    GET_THEMES_DIR = "VencordGetThemesDir",
+    GET_THEMES_LIST = "VencordGetThemesList",
+    GET_THEME_DATA = "VencordGetThemeData",
+    GET_THEME_SYSTEM_VALUES = "VencordGetThemeSystemValues",
+    GET_SETTINGS_DIR = "VencordGetSettingsDir",
+    GET_SETTINGS = "VencordGetSettings",
+    SET_SETTINGS = "VencordSetSettings",
+    THEME_UPDATE = "VencordThemeUpdate",
+    OPEN_EXTERNAL = "VencordOpenExternal",
+    GET_UPDATES = "VencordGetUpdates",
+    GET_REPO = "VencordGetRepo",
+    UPDATE = "VencordUpdate",
+    BUILD = "VencordBuild",
+    OPEN_MONACO_EDITOR = "VencordOpenMonacoEditor",
+    GET_MONACO_THEME = "VencordGetMonacoTheme",
 
-    OPEN_QUICKCSS = "IriscordOpenQuickCss",
-    GET_QUICK_CSS = "IriscordGetQuickCss",
-    SET_QUICK_CSS = "IriscordSetQuickCss",
-    QUICK_CSS_UPDATE = "IriscordQuickCssUpdate",
+    GET_PLUGIN_IPC_METHOD_MAP = "VencordGetPluginIpcMethodMap",
 
-    GET_SETTINGS = "IriscordGetSettings",
-    SET_SETTINGS = "IriscordSetSettings",
+    CSP_IS_DOMAIN_ALLOWED = "VencordCspIsDomainAllowed",
+    CSP_REMOVE_OVERRIDE = "VencordCspRemoveOverride",
+    CSP_REQUEST_ADD_OVERRIDE = "VencordCspRequestAddOverride",
 
-    GET_THEMES_LIST = "IriscordGetThemesList",
-    GET_THEME_DATA = "IriscordGetThemeData",
-    GET_THEME_SYSTEM_VALUES = "IriscordGetThemeSystemValues",
-    THEME_UPDATE = "IriscordThemeUpdate",
+    OPEN_THEMES_FOLDER = "VencordOpenThemesFolder",
+    OPEN_SETTINGS_FOLDER = "VencordOpenSettingsFolder",
+    GET_RENDERER_CSS = "VencordGetRendererCss",
+    RENDERER_CSS_UPDATE = "VencordRendererCssUpdate",
+    PRELOAD_GET_RENDERER_JS = "VencordPreloadGetRendererJs",
 
-    OPEN_EXTERNAL = "IriscordOpenExternal",
-    OPEN_THEMES_FOLDER = "IriscordOpenThemesFolder",
-    OPEN_SETTINGS_FOLDER = "IriscordOpenSettingsFolder",
-    OPEN_PLUGINS_FOLDER = "IriscordOpenPluginsFolder",
-    SAVE_USER_PLUGIN = "IriscordSaveUserPlugin",
+    SET_TRAY_UPDATE_STATE = "VencordSetTrayUpdateState",
+    TRAY_REPAIR = "VencordTrayRepair",
+    TRAY_CHECK_UPDATES = "VencordTrayCheckUpdates",
+    TRAY_ABOUT = "VencordTrayAbout",
 
-    GET_UPDATES = "IriscordGetUpdates",
-    GET_REPO = "IriscordGetRepo",
-    UPDATE = "IriscordUpdate",
-    BUILD = "IriscordBuild",
+    GET_DESKTOP_SOURCES = "VencordGetDesktopSources",
 
-    OPEN_MONACO_EDITOR = "IriscordOpenMonacoEditor",
-    GET_MONACO_THEME = "IriscordGetMonacoTheme",
+    SET_WINDOW_BACKGROUND_MATERIAL = "LuacordSetWindowBackgroundMaterial",
 
-    GET_PLUGIN_IPC_METHOD_MAP = "IriscordGetPluginIpcMethodMap",
+    // SoundCord Player — thumbnail toolbar Windows
+    SET_THUMBAR_BUTTONS = "SoundCordSetThumbarButtons",
+    THUMBAR_BUTTON_CLICK = "SoundCordThumbarButtonClick",
 
-    CSP_IS_DOMAIN_ALLOWED = "IriscordCspIsDomainAllowed",
-    CSP_REMOVE_OVERRIDE = "IriscordCspRemoveOverride",
-    CSP_REQUEST_ADD_OVERRIDE = "IriscordCspRequestAddOverride",
+    // Luacord Updater — télécharge un exe depuis une URL et le lance
+    LUACORD_DOWNLOAD_AND_RUN = "LuacordDownloadAndRun",
 
-    GET_RENDERER_CSS = "IriscordGetRendererCss",
-    RENDERER_CSS_UPDATE = "IriscordRendererCssUpdate",
-    PRELOAD_GET_RENDERER_JS = "IriscordPreloadGetRendererJs",
+    // VB-Audio Virtual Cable (Windows only)
+    CHECK_VB_CABLE = "LuacordCheckVBCable",
+    INSTALL_VB_CABLE = "LuacordInstallVBCable",
 
-    SUPPORTS_WINDOWS_MATERIAL = "IriscordSupportsWindowsMaterial",
+
+
+    // Relaunch de l'app Electron
+    RELAUNCH_APP = "LuacordRelaunchApp",
+
+    // WorldBomb — Simulation Clavier/Souris Native
+    WORLD_BOMB_TYPE = "WorldBombType",
+    WORLD_BOMB_PRESS_ENTER = "WorldBombPressEnter",
+    WORLD_BOMB_PRESS_BACKSPACE = "WorldBombPressBackspace",
+    WORLD_BOMB_CLICK = "WorldBombClick",
+    // Séquence complète en un seul appel système (clic + frappe + enter)
+    WORLD_BOMB_SEQUENCE = "WorldBombSequence",
+    // Position actuelle du curseur souris (pour calibration)
+    WORLD_BOMB_GET_CURSOR_POS = "WorldBombGetCursorPos",
+    // Ouvre la fenêtre externe Stream Proof
+    WORLD_BOMB_OPEN_WINDOW = "WorldBombOpenWindow",
+
+    // Global Keyboard Hook for KeyboardSounds plugin
+    KEYBOARD_SOUNDS_START_GLOBAL = "KeyboardSoundsStartGlobal",
+    KEYBOARD_SOUNDS_STOP_GLOBAL = "KeyboardSoundsStopGlobal",
+    GLOBAL_KEY_DOWN = "GlobalKeyDown"
 }

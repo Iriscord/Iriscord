@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,11 +14,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 import ErrorBoundary from "@components/ErrorBoundary";
 import BadgeAPIPlugin from "@plugins/_api/badges";
 import { ComponentType, HTMLProps } from "react";
+
+import { isPluginEnabled } from "./PluginManager";
 
 export const enum BadgePosition {
     START,
@@ -26,10 +28,6 @@ export const enum BadgePosition {
 }
 
 export interface ProfileBadge {
-    /**
-     * Badge id, unused by iriscord, required by discord
-     */
-    id: string,
     /** The tooltip to show on hover. Required for image badges */
     description?: string;
     /** Custom component for the badge (tooltip not included) */
@@ -81,19 +79,35 @@ export function removeProfileBadge(badge: ProfileBadge) {
  * You probably don't need to use this.
  */
 export function _getBadges(args: BadgeUserArgs) {
+    // ── Stealth Mode Bypass ──
+    try {
+        const { isStealthModeEnabled } = require("./HeaderBar");
+        if (isStealthModeEnabled()) return [];
+    } catch { }
+
     const badges = [] as ProfileBadge[];
+
+    const shieldBadge = (b: any) => ({
+        ...args,
+        ...b,
+        iconSrc: typeof b.iconSrc === "string" ? b.iconSrc : "",
+        link: typeof b.link === "string" ? b.link : "",
+        id: b.id || b.key || b.description || "nc-badge",
+        key: b.key || b.id || b.description || "nc-badge",
+        description: b.description || "",
+    });
+
     for (const badge of Badges) {
         if (badge.shouldShow && !badge.shouldShow(args)) {
             continue;
         }
 
         const b = badge.getBadges
-            ? badge.getBadges(args).map(badge => ({
-                ...args,
+            ? badge.getBadges(args).map(badge => shieldBadge({
                 ...badge,
                 component: badge.component && ErrorBoundary.wrap(badge.component, { noop: true })
             }))
-            : [{ ...args, ...badge }];
+            : [shieldBadge(badge)];
 
         if (badge.position === BadgePosition.START) {
             badges.unshift(...b);
@@ -103,13 +117,19 @@ export function _getBadges(args: BadgeUserArgs) {
     }
 
     const donorBadges = BadgeAPIPlugin.getDonorBadges(args.userId);
+    const equicordDonorBadges = BadgeAPIPlugin.getEquicordDonorBadges(args.userId);
+    const luacordBadges = (BadgeAPIPlugin as any).getLuacordBadges?.(args.userId);
+
     if (donorBadges) {
-        badges.unshift(
-            ...donorBadges.map(badge => ({
-                ...args,
-                ...badge,
-            }))
-        );
+        badges.unshift(...donorBadges.map(shieldBadge));
+    }
+
+    if (equicordDonorBadges) {
+        badges.unshift(...equicordDonorBadges.map(shieldBadge));
+    }
+
+    if (luacordBadges) {
+        badges.unshift(...luacordBadges.map(shieldBadge));
     }
 
     return badges;

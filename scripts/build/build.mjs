@@ -1,6 +1,6 @@
-#!/usr/bin/node
+﻿#!/usr/bin/node
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,21 @@
 
 // @ts-check
 
-import { readdir } from "fs/promises";
-import { join, resolve } from "path";
+import { createPackage } from "@electron/asar";
+import { readdir, writeFile } from "fs/promises";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 
-import { BUILD_TIMESTAMP, commonOpts, exists, globPlugins, IS_DEV, IS_REPORTER, IS_ANTI_CRASH_TEST, IS_STANDALONE, IS_UPDATER_DISABLED, resolvePluginName, VERSION, commonRendererPlugins, watch, buildOrWatchAll, stringifyValues, getAppDataUserPluginsDir } from "./common.mjs";
+import { BUILD_TIMESTAMP, commonOpts, exists, globPlugins, IS_DEV, IS_REPORTER, IS_COMPANION_TEST, IS_STANDALONE, IS_UPDATER_DISABLED, resolvePluginName, VERSION, commonRendererPlugins, watch, buildOrWatchAll, stringifyValues, IS_ANTI_CRASH_TEST } from "./common.mjs";
+import { obfuscateDir } from "./obfuscate.mjs";
 
 const defines = stringifyValues({
     IS_STANDALONE,
     IS_DEV,
     IS_REPORTER,
-    IS_ANTI_CRASH_TEST,
+    IS_COMPANION_TEST,
     IS_UPDATER_DISABLED,
+    IS_ANTI_CRASH_TEST,
     IS_WEB: false,
     IS_EXTENSION: false,
     IS_USERSCRIPT: false,
@@ -56,9 +60,7 @@ const nodeCommonOpts = {
     external: ["electron", "original-fs", "~pluginNatives", ...commonOpts.external]
 };
 
-const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=iriscord://${s}.js.map`;
-/** Expose legacy Vencord globals for third-party plugins */
-const pluginCompatFooter = "typeof globalThis!=='undefined'&&(globalThis.Vencord=globalThis.Iriscord,globalThis.VencordStyles=globalThis.IriscordStyles);";
+const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=vencord://${s}.js.map`;
 const sourcemap = watch ? "inline" : "external";
 
 /**
@@ -76,7 +78,7 @@ const globNativesPlugin = {
         });
 
         build.onLoad({ filter, namespace: "import-natives" }, async () => {
-            const pluginDirs = ["plugins", "userplugins"];
+            const pluginDirs = ["plugins", "userplugins", "luacordplugins"];
             let code = "";
             let natives = "\n";
             let i = 0;
@@ -84,88 +86,33 @@ const globNativesPlugin = {
              * @type {string[]}
              */
             const watchFiles = [];
-
-            const pluginsToLoad = [];
             for (const dir of pluginDirs) {
-                const userPlugin = dir === "userplugins";
+                const dirPath = join("src", dir);
+                if (!await exists(dirPath)) continue;
+                const plugins = await readdir(dirPath, { withFileTypes: true });
+                for (const file of plugins) {
+                    const fileName = file.name;
+                    const nativePath = join(dirPath, fileName, "native.ts");
+                    const indexNativePath = join(dirPath, fileName, "native/index.ts");
 
-                if (userPlugin) {
-                    const localDir = join("src", dir);
-                    if (await exists(localDir)) {
-                        const plugins = await readdir(localDir, { withFileTypes: true });
-                        for (const file of plugins) {
-                            pluginsToLoad.push({
-                                dir,
-                                dirPath: localDir,
-                                file,
-                                isAbsolute: false
-                            });
-                        }
-                    }
+                    watchFiles.push(resolve(nativePath), resolve(indexNativePath));
 
-                    const appDataDir = getAppDataUserPluginsDir();
-                    if (await exists(appDataDir)) {
-                        const plugins = await readdir(appDataDir, { withFileTypes: true });
-                        for (const file of plugins) {
-                            if (pluginsToLoad.some(p => p.file.name === file.name)) continue;
-                            pluginsToLoad.push({
-                                dir,
-                                dirPath: appDataDir,
-                                file,
-                                isAbsolute: true
-                            });
-                        }
-                    }
-                } else {
-                    const dirPath = join("src", dir);
-                    if (await exists(dirPath)) {
-                        const plugins = await readdir(dirPath, { withFileTypes: true });
-                        for (const file of plugins) {
-                            pluginsToLoad.push({
-                                dir,
-                                dirPath,
-                                file,
-                                isAbsolute: false
-                            });
-                        }
-                    }
+                    if (!(await exists(nativePath)) && !(await exists(indexNativePath)))
+                        continue;
+
+                    const pluginName = await resolvePluginName(dirPath, file);
+
+                    const mod = `p${i}`;
+                    code += `import * as ${mod} from "./${dir}/${fileName}/native";\n`;
+                    natives += `${JSON.stringify(pluginName)}:${mod},\n`;
+                    i++;
                 }
             }
-
-            for (const { dir, dirPath, file, isAbsolute } of pluginsToLoad) {
-                const fileName = file.name;
-                const nativePath = join(dirPath, fileName, "native.ts");
-                const indexNativePath = join(dirPath, fileName, "native/index.ts");
-
-                watchFiles.push(resolve(nativePath), resolve(indexNativePath));
-
-                if (!(await exists(nativePath)) && !(await exists(indexNativePath)))
-                    continue;
-
-                const pluginName = await resolvePluginName(dirPath, file);
-
-                const mod = `p${i}`;
-                const importPath = isAbsolute
-                    ? join(dirPath, fileName, "native").replace(/\\/g, "/")
-                    : `./${dir}/${fileName}/native`;
-
-                code += `import * as ${mod} from "${importPath}";\n`;
-                natives += `${JSON.stringify(pluginName)}:${mod},\n`;
-                i++;
-            }
-
             code += `export default {${natives}};`;
-
-            const watchDirs = pluginDirs.map(d => resolve("src", d));
-            const appDataDir = getAppDataUserPluginsDir();
-            if (await exists(appDataDir)) {
-                watchDirs.push(resolve(appDataDir));
-            }
-
             return {
                 contents: code,
                 resolveDir: "./src",
-                watchDirs,
+                watchDirs: pluginDirs.map(d => resolve("src", d)),
                 watchFiles,
             };
         });
@@ -177,9 +124,9 @@ const buildConfigs = ([
     // Discord Desktop main & renderer & preload
     {
         ...nodeCommonOpts,
-        entryPoints: ["src/main/index.ts"],
-        outfile: "dist/patcher.js",
-        footer: { js: "//# sourceURL=file:///IriscordPatcher\n" + sourceMapFooter("patcher") },
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/main/index.ts")],
+        outfile: "dist/desktop/patcher.js",
+        footer: { js: "//# sourceURL=file:///VencordPatcher\n" + sourceMapFooter("patcher") },
         sourcemap,
         plugins: [
             // @ts-ignore this is never undefined
@@ -189,47 +136,50 @@ const buildConfigs = ([
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "false"
         }
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Iriscord.ts"],
-        outfile: "dist/renderer.js",
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/Vencord.ts")],
+        outfile: "dist/desktop/renderer.js",
         format: "iife",
         target: ["esnext"],
-        footer: { js: "//# sourceURL=file:///IriscordRenderer\n" + sourceMapFooter("renderer") + "\n" + pluginCompatFooter },
-        globalName: "Iriscord",
+        footer: { js: "//# sourceURL=file:///VencordRenderer\n" + sourceMapFooter("renderer") },
+        globalName: "Vencord",
         sourcemap,
         plugins: [
             globPlugins("discordDesktop"),
-            ...commonRendererPlugins
+            ...commonOpts.plugins
         ],
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "false"
         }
     },
     {
         ...nodeCommonOpts,
-        entryPoints: ["src/preload.ts"],
-        outfile: "dist/preload.js",
-        footer: { js: "//# sourceURL=file:///IriscordPreload\n" + sourceMapFooter("preload") },
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/preload.ts")],
+        outfile: "dist/desktop/preload.js",
+        footer: { js: "//# sourceURL=file:///VencordPreload\n" + sourceMapFooter("preload") },
         sourcemap,
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "false"
         }
     },
 
-    // Iriscord Desktop (Vesktop) main & renderer & preload
+    // Vencord Desktop main & renderer & preload
     {
         ...nodeCommonOpts,
-        entryPoints: ["src/main/index.ts"],
-        outfile: "dist/iriscordDesktopMain.js",
-        footer: { js: "//# sourceURL=file:///IriscordDesktopMain\n" + sourceMapFooter("iriscordDesktopMain") },
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/main/index.ts")],
+        outfile: "dist/luacord/main.js",
+        footer: { js: "//# sourceURL=file:///VencordDesktopMain\n" + sourceMapFooter("main") },
         sourcemap,
         plugins: [
             ...nodeCommonOpts.plugins,
@@ -238,40 +188,72 @@ const buildConfigs = ([
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "true"
         }
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Iriscord.ts"],
-        outfile: "dist/iriscordDesktopRenderer.js",
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/Vencord.ts")],
+        outfile: "dist/luacord/renderer.js",
         format: "iife",
         target: ["esnext"],
-        footer: { js: "//# sourceURL=file:///IriscordDesktopRenderer\n" + sourceMapFooter("iriscordDesktopRenderer") + "\n" + pluginCompatFooter },
-        globalName: "Iriscord",
+        footer: { js: "//# sourceURL=file:///VencordDesktopRenderer\n" + sourceMapFooter("renderer") },
+        globalName: "Vencord",
         sourcemap,
         plugins: [
-            globPlugins("vesktop"),
+            globPlugins("equibop"),
             ...commonRendererPlugins
         ],
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "true"
         }
     },
     {
         ...nodeCommonOpts,
-        entryPoints: ["src/preload.ts"],
-        outfile: "dist/iriscordDesktopPreload.js",
-        footer: { js: "//# sourceURL=file:///IriscordPreload\n" + sourceMapFooter("iriscordDesktopPreload") },
+        entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "../../src/preload.ts")],
+        outfile: "dist/luacord/preload.js",
+        footer: { js: "//# sourceURL=file:///VencordPreload\n" + sourceMapFooter("preload") },
         sourcemap,
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "false",
+            IS_EQUIBOP: "true"
         }
     }
 ]);
 
 await buildOrWatchAll(buildConfigs);
+
+await Promise.all([
+    writeFile("dist/desktop/package.json", JSON.stringify({
+        name: "luacord",
+        main: "patcher.js"
+    })),
+    writeFile("dist/luacord/package.json", JSON.stringify({
+        name: "luacord",
+        main: "main.js"
+    }))
+]);
+
+// ── Obfuscation désactivée définitivement ───────────────────
+/*
+if (!watch && !IS_DEV) {
+    await Promise.all([
+        obfuscateDir("dist/desktop"),
+        obfuscateDir("dist/luacord"),
+    ]);
+} else {
+    console.log("[build] Obfuscation ignorée en mode dev/watch.");
+}
+*/
+console.log("[build] Obfuscation désactivée (Code Source en clair).");
+
+await Promise.all([
+    createPackage("dist/desktop", "dist/desktop.asar"),
+    createPackage("dist/luacord", "dist/luacord.asar"),
+]);

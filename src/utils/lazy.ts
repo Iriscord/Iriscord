@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,8 +35,8 @@ const unconfigurable = ["arguments", "caller", "prototype"];
 
 const handler: ProxyHandler<any> = {};
 
-export const SYM_LAZY_GET = Symbol.for("iriscord.lazy.get");
-export const SYM_LAZY_CACHED = Symbol.for("iriscord.lazy.cached");
+export const SYM_LAZY_GET = Symbol.for("vencord.lazy.get");
+export const SYM_LAZY_CACHED = Symbol.for("vencord.lazy.cached");
 
 for (const method of [
     "apply",

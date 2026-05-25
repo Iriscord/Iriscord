@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -26,16 +26,21 @@ function readSettings<T = object>(name: string, file: string): Partial<T> {
     }
 }
 
+import { debounce } from "@shared/debounce";
+
 export const RendererSettings = new SettingsStore(readSettings<Settings>("renderer", SETTINGS_FILE));
 
-RendererSettings.addGlobalChangeListener(() => {
+const saveRendererSettings = debounce(() => {
     try {
         writeFileSync(SETTINGS_FILE, JSON.stringify(RendererSettings.plain, null, 4));
     } catch (e) {
         console.error("Failed to write renderer settings", e);
     }
-});
+}, 500);
 
+RendererSettings.addGlobalChangeListener(saveRendererSettings);
+
+ipcMain.handle(IpcEvents.GET_SETTINGS_DIR, () => SETTINGS_DIR);
 ipcMain.on(IpcEvents.GET_SETTINGS, e => e.returnValue = RendererSettings.plain);
 
 ipcMain.handle(IpcEvents.SET_SETTINGS, (_, data: Settings, pathToNotify?: string) => {
@@ -61,10 +66,12 @@ mergeDefaults(nativeSettings, DefaultNativeSettings);
 
 export const NativeSettings = new SettingsStore(nativeSettings as NativeSettings);
 
-NativeSettings.addGlobalChangeListener(() => {
+const saveNativeSettings = debounce(() => {
     try {
         writeFileSync(NATIVE_SETTINGS_FILE, JSON.stringify(NativeSettings.plain, null, 4));
     } catch (e) {
         console.error("Failed to write native settings", e);
     }
-});
+}, 500);
+
+NativeSettings.addGlobalChangeListener(saveNativeSettings);

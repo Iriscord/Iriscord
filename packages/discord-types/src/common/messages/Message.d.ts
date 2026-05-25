@@ -234,7 +234,7 @@ export class Message extends DiscordRecord {
     userHasReactedWithEmoji(emoji: ReactionEmoji, burst?: boolean): boolean;
     addReactionBatch(reactions: { emoji: ReactionEmoji; users: string[]; }[], burstReactions: { emoji: ReactionEmoji; users: string[]; }[]): Message;
 
-    /** Iriscord added */
+    /** Vencord added */
     deleted?: boolean;
 }
 

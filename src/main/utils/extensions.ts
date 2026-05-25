@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -71,7 +71,7 @@ export async function installExt(id: string) {
 
         const buf = await fetchBuffer(url, {
             headers: {
-                "User-Agent": `Electron ${process.versions.electron} ~ Iriscord (https://github.com/Vendicated/Iriscord)`
+                "User-Agent": `Electron ${process.versions.electron} ~ Luacord (https://github.com/luacordoff/luacord)`
             }
         });
 
@@ -79,5 +79,6 @@ export async function installExt(id: string) {
             .catch(err => console.error(`Failed to extract extension ${id}`, err));
     }
 
-    session.defaultSession.loadExtension(extDir);
+    // @ts-expect-error Electron 36 Deprecates session.defaultSession.loadExtension()
+    session.defaultSession.extensions ? session.defaultSession.extensions.loadExtension(extDir) : session.defaultSession.loadExtension(extDir);
 }

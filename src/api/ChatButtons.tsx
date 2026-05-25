@@ -1,5 +1,5 @@
 /*
- * Iriscord, a Discord client mod
+ * Vencord, a Discord client mod
  * Copyright (c) 2024 Vendicated and contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -10,12 +10,12 @@ import ErrorBoundary from "@components/ErrorBoundary";
 import { Logger } from "@utils/Logger";
 import { classes } from "@utils/misc";
 import { IconComponent } from "@utils/types";
-import { Channel } from "@iriscord/discord-types";
+import { Channel } from "@vencord/discord-types";
 import { findCssClassesLazy } from "@webpack";
-import { Clickable, Menu, Tooltip } from "@webpack/common";
+import { Clickable, Tooltip, useState, useEffect } from "@webpack/common";
 import { HTMLProps, JSX, MouseEventHandler, ReactNode } from "react";
 
-import { addContextMenuPatch, findGroupChildrenByChildId } from "./ContextMenu";
+import { addStealthListener, isStealthModeEnabled, removeStealthListener } from "./HeaderBar";
 import { useSettings } from "./Settings";
 
 const ButtonWrapperClasses = findCssClassesLazy("button", "buttonWrapper", "notificationDot");
@@ -95,27 +95,51 @@ export type ChatBarButtonData = {
 export const ChatBarButtonMap = new Map<string, ChatBarButtonData>();
 const logger = new Logger("ChatButtons");
 
-function IriscordChatBarButtons(props: ChatBarProps) {
+/**
+ * Set of button IDs hidden by the Backpack plugin.
+ * Buttons in this set are rendered inside the Backpack popout instead of the main bar.
+ */
+export const BackpackedButtons = new Set<string>();
+export const backpackListeners = new Set<() => void>();
+export function notifyBackpackChange() { backpackListeners.forEach(l => l()); }
+
+function VencordChatBarButtons(props: ChatBarProps) {
     const { chatBarButtons } = useSettings(["uiElements.chatBarButtons.*"]).uiElements;
+    const [, forceUpdate] = useState(0);
+
+    useEffect(() => {
+        const listener = () => forceUpdate(n => n + 1);
+        addStealthListener(listener);
+        window.addEventListener("luacord-stealth-change", listener);
+        backpackListeners.add(listener);
+        return () => {
+            removeStealthListener(listener);
+            window.removeEventListener("luacord-stealth-change", listener);
+            backpackListeners.delete(listener);
+        };
+    }, []);
+
+    if (isStealthModeEnabled()) return null;
 
     const { analyticsName } = props.type;
     return (
-        <>
+        <div className="vc-chat-bar-btns" style={{ display: "contents" }}>
             {Array.from(ChatBarButtonMap)
-                .filter(([key]) => chatBarButtons[key]?.enabled !== false)
+                .filter(([key]) => chatBarButtons[key]?.enabled !== false && !BackpackedButtons.has(key))
+                .sort(([a], [b]) => (a === "Backpack" ? -1 : b === "Backpack" ? 1 : 0))
                 .map(([key, { render: Button }]) => (
                     <ErrorBoundary noop key={key} onError={e => logger.error(`Failed to render ${key}`, e.error)}>
                         <Button {...props} isMainChat={analyticsName === "normal"} isAnyChat={["normal", "sidebar"].includes(analyticsName)} />
                     </ErrorBoundary>
                 ))}
-        </>
+        </div>
     );
 }
 
 export function _injectButtons(buttons: ReactNode[], props: ChatBarProps) {
     if (props.disabled || buttons.length === 0) return;
 
-    buttons.unshift(<IriscordChatBarButtons key="iriscord-chat-buttons" {...props} />);
+    buttons.unshift(<VencordChatBarButtons key="vencord-chat-buttons" {...props} />);
 }
 
 /**
@@ -138,7 +162,7 @@ export const ChatBarButton = ErrorBoundary.wrap((props: ChatBarButtonProps) => {
     return (
         <Tooltip text={props.tooltip}>
             {({ onMouseEnter, onMouseLeave }) => (
-                <div className={`expression-picker-chat-input-button ${ChannelTextAreaClasses?.buttonContainer ?? ""} vc-chatbar-button`}>
+                <div className={`expression-picker-chat-input-button ${ChannelTextAreaClasses?.buttonContainer ?? ""}`}>
                     <Clickable
                         aria-label={props.tooltip}
                         onMouseEnter={onMouseEnter}
@@ -159,34 +183,4 @@ export const ChatBarButton = ErrorBoundary.wrap((props: ChatBarButtonProps) => {
     );
 }, { noop: true });
 
-addContextMenuPatch("textarea-context", (children, args) => {
-    const { chatBarButtons } = useSettings(["uiElements.chatBarButtons.*"]).uiElements;
-
-    const buttons = Array.from(ChatBarButtonMap.entries());
-    if (!buttons.length) return;
-
-    const group = findGroupChildrenByChildId("submit-button", children);
-    if (!group) return;
-
-    const idx = group.findIndex(c => c?.props?.id === "submit-button");
-    if (idx === -1) return;
-
-    group.splice(idx, 0,
-        <Menu.MenuItem id="vc-chat-buttons" key="iriscord-chat-buttons" label="Iriscord Buttons">
-            {buttons.map(([id]) => (
-                <Menu.MenuCheckboxItem
-                    label={id}
-                    key={id}
-                    id={`vc-chat-button-${id}`}
-                    checked={chatBarButtons[id]?.enabled !== false}
-                    action={() => {
-                        const wasEnabled = chatBarButtons[id]?.enabled !== false;
-
-                        chatBarButtons[id] ??= {} as any;
-                        chatBarButtons[id].enabled = !wasEnabled;
-                    }}
-                />
-            ))}
-        </Menu.MenuItem>
-    );
-});
+/* Vencord Buttons context menu removed — managed by Backpack plugin */

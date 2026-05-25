@@ -1,92 +1,162 @@
 /*
- * Iriscord, a modification for Discord's desktop app
- * Copyright (c) 2022 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Luacord — Auto-updater (HTTP / GitHub Releases via ASAR)
+ * Vérifie les releases sur GitHub, télécharge le desktop.asar et remplace l'ancien.
+ */
 
 import { fetchBuffer, fetchJson } from "@main/utils/http";
 import { IpcEvents } from "@shared/IpcEvents";
-import { IRISCORD_USER_AGENT } from "@shared/iriscordUserAgent";
-import { ipcMain } from "electron";
-import { writeFile } from "fs/promises";
+import { VENCORD_USER_AGENT } from "@shared/vencordUserAgent";
+import { ipcMain, app } from "electron";
+import { writeFileSync, rmSync } from "original-fs";
 import { join } from "path";
+import { exec } from "child_process";
 
-import gitHash from "~git-hash";
-import gitRemote from "~git-remote";
+import { serializeErrors } from "./common";
 
-import { serializeErrors, IRISCORD_FILES } from "./common";
+const RELEASES_REPO = "luacordoff/luacord";
+const API_BASE      = `https://api.github.com/repos/${RELEASES_REPO}`;
+const REPO_URL      = `https://github.com/${RELEASES_REPO}`;
+declare const VERSION: string;
+const CURRENT_VERSION = `v${VERSION}`;
+const ZIP_FILE = "luacord-dist.zip";
 
-const API_BASE = `https://api.github.com/repos/${gitRemote}`;
-let PendingUpdates = [] as [string, string][];
+let pendingDownloadUrl: string | null  = null;
+let pendingVersion:     string | null  = null;
+let isApplying                         = false;
 
-async function githubGet<T = any>(endpoint: string) {
+async function githubGet<T = any>(endpoint: string): Promise<T> {
     return fetchJson<T>(API_BASE + endpoint, {
         headers: {
             Accept: "application/vnd.github+json",
-            // "All API requests MUST include a valid User-Agent header.
-            // Requests with no User-Agent header will be rejected."
-            "User-Agent": IRISCORD_USER_AGENT
+            "User-Agent": VENCORD_USER_AGENT
         }
     });
 }
 
-async function calculateGitChanges() {
-    const isOutdated = await fetchUpdates();
-    if (!isOutdated) return [];
-
-    const data = await githubGet(`/compare/${gitHash}...HEAD`);
-
-    return data.commits.map((c: any) => ({
-        // github api only sends the long sha
-        hash: c.sha.slice(0, 7),
-        author: c.author.login,
-        message: c.commit.message.split("\n")[0]
-    }));
+function isNewer(a: string, b: string): boolean {
+    const parse = (v: string) => v.replace(/^v/, "").split(".").map(n => parseInt(n, 10) || 0);
+    const av = parse(a), bv = parse(b);
+    for (let i = 0; i < Math.max(av.length, bv.length); i++) {
+        if ((bv[i] ?? 0) > (av[i] ?? 0)) return true;
+        if ((bv[i] ?? 0) < (av[i] ?? 0)) return false;
+    }
+    return false;
 }
 
-async function fetchUpdates() {
+async function fetchUpdates(): Promise<boolean> {
     const data = await githubGet("/releases/latest");
+    const latestTag: string = data.tag_name ?? "";
 
-    const hash = data.name.slice(data.name.lastIndexOf(" ") + 1);
-    if (hash === gitHash)
-        return false;
+    if (!latestTag || !isNewer(CURRENT_VERSION, latestTag)) return false;
 
-    data.assets.forEach(({ name, browser_download_url }) => {
-        if (IRISCORD_FILES.some(s => name.startsWith(s))) {
-            PendingUpdates.push([name, browser_download_url]);
-        }
-    });
-
-    return true;
-}
-
-async function applyUpdates() {
-    const fileContents = await Promise.all(PendingUpdates.map(async ([name, url]) => {
-        const contents = await fetchBuffer(url);
-        return [join(__dirname, name), contents] as const;
-    }));
-
-    await Promise.all(fileContents.map(async ([filename, contents]) =>
-        writeFile(filename, contents))
+    const asset = (data.assets as any[])?.find(
+        (a: any) => a.name === ZIP_FILE
     );
+    if (!asset) return false;
 
-    PendingUpdates = [];
+    pendingDownloadUrl = asset.browser_download_url;
+    pendingVersion     = latestTag;
     return true;
 }
 
-ipcMain.handle(IpcEvents.GET_REPO, serializeErrors(() => `https://github.com/${gitRemote}`));
-ipcMain.handle(IpcEvents.GET_UPDATES, serializeErrors(calculateGitChanges));
-ipcMain.handle(IpcEvents.UPDATE, serializeErrors(fetchUpdates));
-ipcMain.handle(IpcEvents.BUILD, serializeErrors(applyUpdates));
+async function getUpdates() {
+    const outdated = await fetchUpdates();
+    if (!outdated) return [];
+    return [{
+        hash:    pendingVersion ?? "new",
+        author:  "Luacord",
+        message: `Nouvelle version disponible : ${pendingVersion}`
+    }];
+}
+
+async function applyUpdates(): Promise<boolean> {
+    if (!pendingDownloadUrl) return false;
+    if (isApplying) return false;
+    isApplying = true;
+
+    try {
+        const data = await fetchBuffer(pendingDownloadUrl);
+
+        // Save zip to temp
+        const zipPath = join(app.getPath("temp"), `luacord-update-${Date.now()}.zip`);
+        writeFileSync(zipPath, data, { flush: true });
+
+        // The zip was created from dist/desktop/ with includeBaseDirectory=false,
+        // so its contents are exactly what belongs in dist/desktop/ = __dirname.
+        // Using __dirname directly avoids the off-by-one-level bug.
+        const destPath = __dirname;
+
+        // Extract using PowerShell Expand-Archive (reliable ZIP support on all Windows 10/11)
+        // We extract to a temp folder first, then move files over to avoid half-extracted state
+        const tmpExtract = join(app.getPath("temp"), `luacord-extract-${Date.now()}`);
+
+        return await new Promise<boolean>((resolve, reject) => {
+            // Step 1 — extract zip to temp folder
+            const psExtract = `Expand-Archive -LiteralPath '${zipPath}' -DestinationPath '${tmpExtract}' -Force`;
+            exec(`powershell -NoProfile -NonInteractive -Command "${psExtract}"`, (err) => {
+                if (err) {
+                    try { rmSync(zipPath, { force: true }); } catch {}
+                    return reject(new Error("ZIP extraction failed: " + err.message));
+                }
+
+                // Step 2 — copy extracted files into dist/desktop/ (= __dirname), overwriting existing ones
+                const psMove = `Copy-Item -Path '${tmpExtract}\\*' -Destination '${destPath}' -Recurse -Force`;
+                exec(`powershell -NoProfile -NonInteractive -Command "${psMove}"`, (err2) => {
+                    // Cleanup temp files regardless of outcome
+                    try { rmSync(zipPath,    { force: true }); } catch {}
+                    try { rmSync(tmpExtract, { recursive: true, force: true }); } catch {}
+
+                    if (err2) {
+                        return reject(new Error("File copy failed: " + err2.message));
+                    }
+
+                    pendingDownloadUrl = null;
+                    pendingVersion = null;
+                    resolve(true);
+                });
+            });
+        });
+    } finally {
+        isApplying = false;
+    }
+}
+
+// ─── Auto-update on quit ─────────────────────────────────────────────────────
+// Si une mise à jour est en attente quand Discord se ferme, on l'installe
+// silencieusement avant de quitter (timeout de sécurité 45s).
+app.on("before-quit", (event) => {
+    // Ne tenter l'update que si une URL est en attente ET qu'on n'est pas déjà en train
+    if (!pendingDownloadUrl || isApplying) return;
+
+    event.preventDefault();
+    console.log("[Luacord] Applying pending update before quit...");
+
+    const safetyTimeout = setTimeout(() => {
+        console.error("[Luacord] Update on quit timed out — forcing exit.");
+        // Nettoyer pour éviter la boucle infinie au prochain démarrage
+        pendingDownloadUrl = null;
+        pendingVersion = null;
+        app.exit(0);
+    }, 45_000);
+
+    applyUpdates()
+        .then(ok => {
+            if (ok) console.log("[Luacord] Update applied successfully on quit.");
+            else    console.warn("[Luacord] Update on quit returned false.");
+        })
+        .catch(err => {
+            console.error("[Luacord] Update on quit failed:", err);
+            // En cas d'échec, nettoyer pour éviter la boucle infinie
+            pendingDownloadUrl = null;
+            pendingVersion = null;
+        })
+        .finally(() => {
+            clearTimeout(safetyTimeout);
+            app.exit(0);
+        });
+});
+
+ipcMain.handle(IpcEvents.GET_REPO,    serializeErrors(() => REPO_URL));
+ipcMain.handle(IpcEvents.GET_UPDATES, serializeErrors(getUpdates));
+ipcMain.handle(IpcEvents.UPDATE,      serializeErrors(fetchUpdates));
+ipcMain.handle(IpcEvents.BUILD,       serializeErrors(applyUpdates));

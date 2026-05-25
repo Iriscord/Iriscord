@@ -1,5 +1,5 @@
 /*
- * Iriscord, a modification for Discord's desktop app
+ * Vencord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,5 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-if (!IS_UPDATER_DISABLED)
-    require(IS_STANDALONE ? "./http" : "./git");
+import { IpcEvents } from "@shared/IpcEvents";
+import { ipcMain } from "electron";
+
+import gitRemote from "~git-remote";
+
+import { serializeErrors } from "./common";
+
+if (!IS_UPDATER_DISABLED) {
+    // Luacord utilise toujours le mode HTTP (GitHub Releases)
+    // IS_STANDALONE est false quand injecté dans Discord, mais on veut quand même http.ts
+    require("./http");
+} else {
+    ipcMain.handle(IpcEvents.GET_REPO, serializeErrors(() => `https://github.com/${gitRemote}`));
+    ipcMain.handle(IpcEvents.GET_UPDATES, serializeErrors(() => []));
+}

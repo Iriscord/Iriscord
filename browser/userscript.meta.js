@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name            Iriscord
-// @description     A modern Discord client mod — powered by Iris (web)
+// @name            Equicord
+// @description     A Discord client mod - Web version
 // @version         %version%
-// @author          Iriscord Contributors
-// @namespace       https://github.com/iriscord/iriscord
-// @supportURL      https://github.com/iriscord/iriscord
-// @icon            https://raw.githubusercontent.com/iriscord/iriscord/main/assets/iriscord-logo.svg
+// @author          Equicord (https://github.com/Equicord)
+// @namespace       https://github.com/Equicord/Equicord
+// @supportURL      https://github.com/Equicord/Equicord
+// @icon            https://raw.githubusercontent.com/Equicord/Equicord/refs/heads/main/browser/icon.png
 // @license         GPL-3.0
 // @match           *://*.discord.com/*
 // @grant           GM_xmlhttpRequest
@@ -19,5 +19,8 @@
 // ==/UserScript==
 
 
-// Compiled Iriscord userscript. For source, see the Iriscord repository.
-// Exposes Iriscord on unsafeWindow; Iriscord is an alias for plugin compatibility.
+// this UserScript DOES NOT work on Firefox with Violentmonkey or Greasemonkey due to a bug that makes it impossible
+// to overwrite stuff on the window on sites that use CSP. Use Tampermonkey or use a chromium based browser
+// https://github.com/violentmonkey/violentmonkey/issues/997
+
+// this is a compiled and minified version of Equicord. For the source code, visit the GitHub repo
