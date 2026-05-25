@@ -93,83 +93,32 @@ git clone https://github.com/yourusername/luacord.git
 cd luacord
 ```
 
-### 2. Run the Installer
+### 2. Install the dependencies
 
 #### Windows
 
 ```powershell
-.\luacord-installer.ps1
+pnpm install
 ```
 
-or simply launch:
+### 3. build Luacord
 
 ```bash
-INSTALL.bat
+pnpm build
 ```
 
-### 3. Install Luacord
+### 4. Inject Luacord
 
 Choose:
 
 ```text
-[1] Install Luacord
-```
-
-### 4. Launch Discord
-
-That’s it — Luacord is now active.
-
----
-
-# 🛠️ Manual Installation
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build project
-pnpm build
-
-# Inject into Discord
 pnpm inject
 ```
 
----
+### 5. Launch Discord
 
-# 🎮 Usage
+That’s it — Luacord is now active.
 
-## Install
-
-1. Close Discord completely
-2. Launch the installer
-3. Select **Install Luacord**
-4. Open Discord
-
----
-
-## Uninstall
-
-1. Close Discord
-2. Open the installer
-3. Select **Uninstall Luacord**
-
----
-
-## Build From Source
-
-```bash
-pnpm build
-```
-
----
-
-## Development Mode
-
-```bash
-pnpm watch
-```
-
----
 
 # 🎨 Customization
 
@@ -179,7 +128,7 @@ pnpm watch
 2. Navigate to:
 
 ```text
-Luacord → Theme Studio
+Luacord → Create Theme
 ```
 
 3. Pick your colors
@@ -199,19 +148,6 @@ Luacord → Plugins
 
 3. Toggle plugins on/off
 4. Configure settings instantly
-
----
-
-# 📋 Installer Options
-
-```text
-[1] Install Luacord
-[2] Uninstall Luacord
-[3] Build Luacord
-[4] Launch Discord
-[5] System Status
-[0] Exit
-```
 
 ---
 
@@ -239,7 +175,7 @@ Founder & Lead Developer of Luacord
 # 🔗 Community & Links
 
 * Discord Server: [https://discord.gg/pE3xn59aZC](https://discord.gg/pE3xn59aZC)
-* GitHub: [https://github.com/yourusername/luacord](https://github.com/yourusername/luacord)
+* GitHub: [https://github.com/yourusername/luacord](https://github.com/LuacordR/luacord)
 
 ---
 
