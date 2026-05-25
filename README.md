@@ -175,7 +175,7 @@ Founder & Lead Developer of Luacord
 # 🔗 Community & Links
 
 * Discord Server: [https://discord.gg/pE3xn59aZC](https://discord.gg/pE3xn59aZC)
-* GitHub: [https://github.com/yourusername/luacord](https://github.com/LuacordR/luacord)
+* Developer: [https://github.com/yourusername/luacord](https://github.com/luanaticc)
 
 ---
 
